@@ -8,7 +8,7 @@ COPY ./CentOS-ORMP.repo /etc/yum.repos.d/
 COPY ./license/ /opt/roschat-server/certificates/https/
 COPY ./start_ansible_playbook.sh /tmp/
 COPY ./server_playbook.yml /tmp/
-COPY ./rpms/ /tmp/
+COPY /tmp/rpms/ /tmp/
 
 RUN yum -y install ansible \
   turnserver \
