@@ -4,34 +4,34 @@ properties([disableConcurrentBuilds()])
 
 pipeline{
     agent{
-        label 'any'
-    }
-
-    node('docker_centos'){
-      stages{
-          stage("Очищаем сборочную директорию"){
-              steps{
-                  deleteDir();
-              }
-          }
-          stage("Клонирование GIT"){
-              steps{
-                  echo "========== Cloning GIT =========="
-                  git 'ssh://bezpalko_p@10.10.199.35/opt/git/firelink/roschat-server_docker'
-              }
-          }
-          stage("Копируем rpms"){
-              steps{
-                  echo "========== Copy rpms =========="
-                  sh label: '', script: 'cp -r /tmp/rpms ${WORKSPACE}'
-              }
-          }
-          stage("Собираем образ docker"){
-              steps{
-                  echo "========== Build docker image =========="
-                  sh label: '', script: 'docker build -t roschat-server:latest .'
-              }
-          }
+      node{
+        label 'docker_centos'
       }
     }
+
+    stages{
+        stage("Очищаем сборочную директорию"){
+            steps{
+                deleteDir();
+            }
+        }
+        stage("Клонирование GIT"){
+            steps{
+                echo "========== Cloning GIT =========="
+                git 'ssh://bezpalko_p@10.10.199.35/opt/git/firelink/roschat-server_docker'
+            }
+        }
+        stage("Копируем rpms"){
+            steps{
+                echo "========== Copy rpms =========="
+                sh label: '', script: 'cp -r /tmp/rpms ${WORKSPACE}'
+            }
+        }
+        stage("Собираем образ docker"){
+            steps{
+                echo "========== Build docker image =========="
+                sh label: '', script: 'docker build -t roschat-server:latest .'
+            }
+        }
+    }    
 }
