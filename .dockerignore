@@ -4,5 +4,4 @@ build_docker.sh
 docker-compose.yml
 packer_playbook.yml
 server_build.json
-rpms/*
 jenkinsfile/*
