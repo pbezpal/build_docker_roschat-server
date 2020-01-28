@@ -35,7 +35,7 @@ node('docker_centos'){
         echo "========== Stop docker container =========="
         if test -f /tmp/build.other; then
           if docker ps | grep roschat-server; then
-          docker container stop test
+          docker container stop roschat-server_$(cat /tmp/build.other)
           fi
         fi''')
     }
@@ -58,7 +58,7 @@ node('docker_centos'){
     stage("Запускаю установку ПО в контейнере"){
        sh('''#!/bin/bash
        echo "========== Install soft on docker container =========="
-       docker container exec roschat-server:$(cat /tmp/build) /tmp/start_ansible_playbook.sh''')
+       docker container exec roschat-server_$(cat /tmp/build) /tmp/start_ansible_playbook.sh''')
     }
 
 
