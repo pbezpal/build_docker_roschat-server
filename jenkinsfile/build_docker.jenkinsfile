@@ -30,7 +30,7 @@ node('docker_centos'){
         docker build -t roschat-server:$(cat /tmp/build) .''')
     }
 
-    stage("Останавливаем старый контейнер"){
+    /*stage("Останавливаем старый контейнер"){
         sh('''#!/bin/bash
         echo "========== Stop docker container =========="
         if test -f /tmp/build.other; then
@@ -38,7 +38,7 @@ node('docker_centos'){
           docker container stop test
           fi
         fi''')
-    }
+    }*/
 
     stage("Запускаем новый контейнер"){
         sh('''#!/bin/bash
@@ -52,7 +52,7 @@ node('docker_centos'){
           -p 5060:5060/udp -p 3478:3478 \
           -p 1110:1110 -p 2223:2223 -p 2222:22 \
           -p 49000-49150:49000-49150/udp \
-          -p 49152-49182:49152-49182 roschat-server:$(cat /tmp/build)''')
+          -p 49152-49182:49152-49182 roschat-server:1''')
     }
 
     stage("Запускаю установку ПО в контейнере"){
@@ -60,6 +60,7 @@ node('docker_centos'){
        echo "========== Install soft on docker container =========="
        docker container exec roschat-server:$(cat /tmp/build) /tmp/start_ansible_playbook.sh''')
     }
+
 
     stage('Удаляем метку'){
         sh('''#!/bin/bash
