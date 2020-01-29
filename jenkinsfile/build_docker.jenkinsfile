@@ -73,7 +73,9 @@ node('docker_centos'){
         docker start roschat-server_$(cat /tmp/build.other)
         docker container exec roschat-server_$(cat /tmp/build.other) /tmp/start_services.sh''')
       }else{
-        echo "========== SUCCESS =========="
+        sh('''#!/bin/_bash
+        echo "========== Remove old container =========="
+        docker rm roschat-server_$(cat /tmp/build.other)''')
       }
     }
 
