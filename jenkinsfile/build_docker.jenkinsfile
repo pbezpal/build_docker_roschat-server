@@ -80,7 +80,7 @@ node('docker_centos'){
     }
 
     stage('Удаляем метку для сборки'){
-        if(!resultBuild){
+        if(resultBuild){
           sh('''#!/bin/bash
           echo "========== Remove mark for build =========="
           mv -f /tmp/build /tmp/build.other''')
