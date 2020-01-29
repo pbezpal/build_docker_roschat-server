@@ -13,6 +13,7 @@ COPY ./rpms/ /tmp/
 
 RUN yum -y install ansible \
   turnserver \
+  sudo \
   cryptopp \
   cyrus-sasl-plain \
   nodejs \
