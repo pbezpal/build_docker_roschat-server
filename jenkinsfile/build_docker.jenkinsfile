@@ -9,13 +9,17 @@ node('docker_centos'){
         deleteDir();
     }
 
-    stage("Клонирование GIT"){
+    try{
+      stage("Клонирование GIT"){
         echo "========== Cloning GIT =========="
         git 'ssh://bezpalko_p@10.10.199.35/opt/git/firelink/roschat-server_docker'
+      }
+    }catch(e){
+      return
     }
 
-    stage("Собираем образ docker"){
-      try{
+    try{
+      stage("Собираем образ docker"){
         sh('''#!/bin/bash
         echo "========== Copy rpms =========="
         if [ ! -d ${WORKSPACE}/rpms ]; then
@@ -23,13 +27,13 @@ node('docker_centos'){
         fi
         echo "========== Build docker image =========="
         docker build -t roschat-server:$(cat /tmp/build) .''')
-      }catch(e){
-        resultBuild=false
       }
+    }catch(e){
+      return
     }
 
-    stage("Останавливаем старый контейнер"){
-      if(resultBuild){
+    try{
+      stage("Останавливаем старый контейнер"){
         sh('''#!/bin/bash
         echo "========== Stop docker container =========="
         if test -f /tmp/build.other; then
@@ -37,9 +41,9 @@ node('docker_centos'){
           docker container stop roschat-server_$(cat /tmp/build.other)
           fi
         fi''')
-      }else{
-        return
       }
+    }catch(e){
+      resultBuild=false
     }
 
     stage("Запускаем новый контейнер"){
