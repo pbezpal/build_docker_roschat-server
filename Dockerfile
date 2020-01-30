@@ -27,9 +27,9 @@ RUN yum -y install ansible \
   yum clean all
 
 RUN echo "[server]" >> /etc/ansible/hosts && \
-    echo "ansible_password=123456" >> /etc/ansible/hosts && \
+    echo "ansible_password=Art7Tykx78Dp" >> /etc/ansible/hosts && \
     chmod +x /tmp/start_ansible_playbook.sh && \
-    echo "root:123456" | chpasswd
+    echo "root:Art7Tykx78Dp" | chpasswd
 
 WORKDIR /
 
