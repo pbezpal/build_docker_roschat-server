@@ -33,6 +33,17 @@ node('docker_centos'){
     }
 
     try{
+      stage("Добавляем docker image в репозиторий"){
+        sh('''#!/bin/bash
+        echo "========== Push docker image =========="
+        docker tag roschat-server:$(cat /tmp/build) 10.10.199.217:5000/roschat-server:$(cat /tmp/build)
+        docker push 10.10.199.217:5000/roschat-server:$(cat /tmp/build)''')
+      }catch(e){
+        resultBuild=false
+      }
+    }
+
+    try{
       stage("Останавливаем старый контейнер"){
         sh('''#!/bin/bash
         echo "========== Stop docker container =========="
@@ -95,7 +106,9 @@ node('docker_centos'){
       }else{
         sh('''#!/bin/bash
         echo "========== Remove old container =========="
-        docker rm roschat-server_$(cat /tmp/build.other)''')
+        docker rm roschat-server_$(cat /tmp/build.other)
+        echo "========== Remove old docker image =========="
+        docker rmi roschat-server:$(cat /tmp/build.other)''')
       }
     }
 
