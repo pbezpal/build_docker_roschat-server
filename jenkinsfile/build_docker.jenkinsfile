@@ -71,7 +71,8 @@ node('docker_centos'){
             -p 5060:5060/udp -p 3478:3478 \
             -p 1110:1110 -p 2223:2223 -p 2222:22 \
             -p 49000-49150:49000-49150/udp \
-            -p 49152-49182:49152-49182 roschat-server:$(cat /tmp/build)''')
+            -p 49152-49182:49152-49182 \
+            -p 161:161 roschat-server:$(cat /tmp/build)''')
         }catch(e){
           resultBuild=false
         }
