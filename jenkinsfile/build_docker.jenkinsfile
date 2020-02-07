@@ -32,7 +32,7 @@ node('docker_centos'){
       return
     }
 
-    try{
+    /*try{
       stage("Добавляем docker image в репозиторий"){
         sh('''#!/bin/bash
         echo "========== Push docker image =========="
@@ -41,7 +41,7 @@ node('docker_centos'){
       }
     }catch(e){
         resultBuild=false
-    }
+    }*/
 
     try{
       stage("Останавливаем старый контейнер"){
