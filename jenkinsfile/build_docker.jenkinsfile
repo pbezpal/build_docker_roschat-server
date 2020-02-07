@@ -38,9 +38,9 @@ node('docker_centos'){
         echo "========== Push docker image =========="
         docker tag roschat-server:$(cat /tmp/build) 10.10.199.217:5000/roschat-server:$(cat /tmp/build)
         docker push 10.10.199.217:5000/roschat-server:$(cat /tmp/build)''')
-      }catch(e){
-        resultBuild=false
       }
+    }catch(e){
+        resultBuild=false
     }
 
     try{
