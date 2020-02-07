@@ -13,6 +13,10 @@
          sed -i 's/"httpsSertChain": *./"httpsSertChain": [ \n \t \t "\/opt\/roschat-server\/certificates\/https\/bundle.crt", \n \t \t "\/opt\/roschat-server\/certificates\/https\/main.crt" \n \t/' /opt/roschat-server/server/config.json
          sed -i 's/"2fa": true/"2fa": false/' /opt/roschat-server/server/config.json
 
+     - name: Symlink python36
+       shell: |
+         ln -s /usr/bin/python3.6 /usr/bin/python36
+
      - name: Make sure a service wlan is running
        systemd:
          state: started
@@ -27,6 +31,16 @@
        systemd:
          state: started
          name: roschat-db
+
+     - name: Make sure a serveice snmpd is running
+       systemd:
+         state: started
+         name: snmpd
+
+     - name: Make sure a serveice roschat-snmp is running
+       systemd:
+         state: started
+         name: roschat-snmp
 
      - name: Make sure a service sshd is running
        systemd:
