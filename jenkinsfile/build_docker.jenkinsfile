@@ -67,8 +67,8 @@ node('docker_centos'){
             --mount type=tmpfs,destination=/run \
             --mount type=tmpfs,destination=/run/lock \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -p 8080:8080 -p 80:80 -p 8081:8081 -p 443:443 \
-            -p 5060:5060/udp -p 3478:3478 \
+            -p 8080:8080 -p 80:80 -p 8081:8081 -p 8088:8088 \
+            -p 443:443 -p 5060:5060/udp -p 3478:3478 \
             -p 1110:1110 -p 2223:2223 -p 2222:22 \
             -p 49000-49150:49000-49150/udp \
             -p 49152-49182:49152-49182 \
