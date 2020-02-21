@@ -109,7 +109,8 @@ node('docker_centos'){
         echo "========== Remove old container =========="
         docker rm roschat-server_$(cat /tmp/build.other)
         echo "========== Remove old docker image =========="
-        docker rmi roschat-server:$(cat /tmp/build.other)''')
+        docker rmi roschat-server:$(cat /tmp/build.other)
+        docker rmi 10.10.199.217:5000/roschat-server:$(cat /tmp/build.other)''')
       }
     }
 
