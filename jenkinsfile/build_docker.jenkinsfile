@@ -10,7 +10,7 @@ pipeline{
     label 'docker_centos'
   }
   stages{
-    stage("Очищаем сборочную директорию"){
+    stage("Очистка сборочной директории"){
       steps{
         deleteDir();
       }
@@ -28,7 +28,7 @@ pipeline{
         }
       }
     }
-    stage("Собираем образ docker"){
+    stage("Сборка образа docker"){
       steps{
         script{
           try{
@@ -46,7 +46,7 @@ pipeline{
         }
       }
     }
-    stage("Останавливаем старый контейнер"){
+    stage("Остановка старого контейнера"){
       steps{
         script{
           try{
@@ -64,7 +64,7 @@ pipeline{
         }
       }
     }
-    stage("Запускаем новый контейнер"){
+    stage("Запуск нового контейнер"){
       steps{
         script{
           try{
@@ -87,7 +87,7 @@ pipeline{
         }
       }
     }
-    stage("Запускаю установку ПО в контейнере"){
+    stage("Запуск установки ПО в новый контейнере"){
       steps{
         script{
           try{
@@ -100,7 +100,7 @@ pipeline{
         }
       }
     }
-    stage("Проверяем успешность сборки и запуска контейнера"){
+    stage("Проверка успешности сборки и запуска нового контейнера"){
       steps{
         script{
             if(!resultBuild){
@@ -123,7 +123,7 @@ pipeline{
         }
       }
     }
-    stage('Удаляем метку для сборки'){
+    stage('Удаление метки для сборки образа docker'){
       steps{
         script{
             if(resultBuild){
@@ -151,7 +151,7 @@ pipeline{
     success{
       script{
         VERSION=readFile('/tmp/build.other').trim()
-        build(job: "roschat-ms_pipeline",
+        build(job: "roschat-server-testing",
           parameters:
           [string(name: 'VER', value: "${VERSION}")])
       }
