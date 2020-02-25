@@ -118,7 +118,7 @@ pipeline{
             }else{
               sh('''#!/bin/bash
               echo "========== Remove old container =========="
-              docker rm roschat-server_$(cat /tmp/build.other)
+              docker rm roschat-server_$(cat /tmp/build.other''')
             }
         }
       }
@@ -126,11 +126,11 @@ pipeline{
     stage('Удаление метки для сборки образа docker'){
       steps{
         script{
-            if(resultBuild){
-              sh('''#!/bin/bash
-              echo "========== Remove mark for build =========="
-              mv -f /tmp/build /tmp/build.other''')
-            }
+          if(resultBuild){
+            sh('''#!/bin/bash
+            echo "========== Remove mark for build =========="
+            mv -f /tmp/build /tmp/build.other''')
+          }
         }
       }
     }
