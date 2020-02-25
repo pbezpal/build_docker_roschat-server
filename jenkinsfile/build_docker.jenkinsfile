@@ -1,130 +1,147 @@
 #!groovy
 
 def resultBuild = true
+def VERSION
 properties([disableConcurrentBuilds()])
 
-node('docker_centos'){
-
+pipeline{
+  agent{
+    label 'docker_centos'
+  }
+  stages{
     stage("Очищаем сборочную директорию"){
+      steps{
         deleteDir();
+      }
     }
-
-    try{
-      stage("Клонирование GIT"){
+    stage("Клонирование GIT"){
+      steps{
         echo "========== Cloning GIT =========="
-        git 'ssh://bezpalko_p@10.10.199.35/opt/git/firelink/roschat-server_docker'
+        script{
+          try{
+            git 'ssh://bezpalko_p@10.10.199.35/opt/git/firelink/roschat-server_docker'
+          }catch(err){
+            currentBuild.result = "Failure"
+            error("Невозможно выполниь клонированние из репозитория git")
+          }
+        }
       }
-    }catch(e){
-      return
     }
-
-    try{
-      stage("Собираем образ docker"){
-        sh('''#!/bin/bash
-        echo "========== Copy rpms =========="
-        if [ ! -d ${WORKSPACE}/rpms ]; then
-        cp -r /tmp/rpms ${WORKSPACE}
-        fi
-        echo "========== Build docker image =========="
-        docker build -t roschat-server:$(cat /tmp/build) .''')
+    stage("Собираем образ docker"){
+      steps{
+        script{
+          try{
+            sh('''#!/bin/bash
+            echo "========== Copy rpms =========="
+            if [ ! -d ${WORKSPACE}/rpms ]; then
+            cp -r /tmp/rpms ${WORKSPACE}
+            fi
+            echo "========== Build docker image =========="
+            docker build -t roschat-server:$(cat /tmp/build) .''')
+          }catch(err){
+            currentBuild.result = "FAILURE"
+            error("Не удалось собрать образ docker")
+          }
+        }
       }
-    }catch(e){
-      return
     }
-
-    try{
-      stage("Добавляем docker image в репозиторий"){
-        sh('''#!/bin/bash
-        echo "========== Push docker image =========="
-        docker tag roschat-server:$(cat /tmp/build) 10.10.199.217:5000/roschat-server:$(cat /tmp/build)
-        docker push 10.10.199.217:5000/roschat-server:$(cat /tmp/build)''')
+    stage("Останавливаем старый контейнер"){
+      steps{
+        script{
+          try{
+            sh('''#!/bin/bash
+            echo "========== Stop docker container =========="
+            if test -f /tmp/build.other; then
+              if docker ps | grep roschat-server; then
+              docker container stop roschat-server_$(cat /tmp/build.other)
+              fi
+            fi''')
+          }catch(err){
+            currentBuild.result = "FAILURE"
+            error("Не удалось остановить старый контейнер")
+          }
+        }
       }
-    }catch(e){
-        resultBuild=false
     }
-
-    try{
-      stage("Останавливаем старый контейнер"){
-        sh('''#!/bin/bash
-        echo "========== Stop docker container =========="
-        if test -f /tmp/build.other; then
-          if docker ps | grep roschat-server; then
-          docker container stop roschat-server_$(cat /tmp/build.other)
-          fi
-        fi''')
-      }
-    }catch(e){
-      resultBuild=false
-    }
-
     stage("Запускаем новый контейнер"){
-      if(resultBuild){
-        try{
-          sh('''#!/bin/bash
-          echo "========== Start docker container =========="
-          docker run -d --name=roschat-server_$(cat /tmp/build) \
-            --mount type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup \
-            --mount type=tmpfs,destination=/run \
-            --mount type=tmpfs,destination=/run/lock \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -p 8080:8080 -p 80:80 -p 8081:8081 \
-            -p 443:443 -p 5060:5060/udp -p 3478:3478 \
-            -p 1110:1110 -p 2223:2223 -p 2222:22 \
-            -p 49000-49150:49000-49150/udp \
-            -p 49152-49182:49152-49182 \
-            -p 161:161/udp roschat-server:$(cat /tmp/build)''')
-        }catch(e){
-          resultBuild=false
+      steps{
+        script{
+          try{
+            sh('''#!/bin/bash
+            echo "========== Start docker container =========="
+            docker run -d --name=roschat-server_$(cat /tmp/build) \
+              --mount type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup \
+              --mount type=tmpfs,destination=/run \
+              --mount type=tmpfs,destination=/run/lock \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -p 8080:8080 -p 80:80 -p 8081:8081 \
+              -p 443:443 -p 5060:5060/udp -p 3478:3478 \
+              -p 1110:1110 -p 2223:2223 -p 2222:22 \
+              -p 49000-49150:49000-49150/udp \
+              -p 49152-49182:49152-49182 \
+              -p 161:161/udp roschat-server:$(cat /tmp/build)''')
+          }catch(e){
+            resultBuild=false
+          }
         }
       }
     }
-
     stage("Запускаю установку ПО в контейнере"){
-      if(resultBuild){
-        try{
-          sh('''#!/bin/bash
-          echo "========== Install soft on docker container =========="
-          docker container exec roschat-server_$(cat /tmp/build) /tmp/start_ansible_playbook.sh''')
-        }catch(e){
-          resultBuild=false
+      steps{
+        script{
+          try{
+            sh('''#!/bin/bash
+            echo "========== Install soft on docker container =========="
+            docker container exec roschat-server_$(cat /tmp/build) /tmp/start_ansible_playbook.sh''')
+          }catch(e){
+            resultBuild=false
+          }
         }
       }
     }
-
     stage("Проверяем успешность сборки и запуска контейнера"){
-      if(!resultBuild){
-        sh('''#!/bin/bash
-        echo "========== Faild build docker image and start container =========="
-        if docker ps | grep roschat-server_$(cat /tmp/build); then
-          docker stop roschat-server_$(cat /tmp/build)
-          docker rm roschat-server_$(cat /tmp/build)
-          docker rmi roschat-server:$(cat /tmp/build)
-        fi
+      steps{
+        script{
+            if(!resultBuild){
+              sh('''#!/bin/bash
+              echo "========== Faild build docker image and start container =========="
+              if docker ps | grep roschat-server_$(cat /tmp/build); then
+                docker stop roschat-server_$(cat /tmp/build)
+                docker rm roschat-server_$(cat /tmp/build)
+                docker rmi roschat-server:$(cat /tmp/build)
+              fi
 
-        echo "========== Start old container =========="
-        docker start roschat-server_$(cat /tmp/build.other)
-        docker container exec roschat-server_$(cat /tmp/build.other) /tmp/start_services.sh''')
-      }else{
-        sh('''#!/bin/bash
-        echo "========== Remove old container =========="
-        docker rm roschat-server_$(cat /tmp/build.other)
-        echo "========== Remove old docker image =========="
-        docker rmi roschat-server:$(cat /tmp/build.other)
-        docker rmi 10.10.199.217:5000/roschat-server:$(cat /tmp/build.other)''')
+              echo "========== Start old container =========="
+              docker start roschat-server_$(cat /tmp/build.other)
+              docker container exec roschat-server_$(cat /tmp/build.other) /tmp/start_services.sh''')
+            }else{
+              sh('''#!/bin/bash
+              echo "========== Remove old container =========="
+              docker rm roschat-server_$(cat /tmp/build.other)              
+            }
+        }
       }
     }
-
     stage('Удаляем метку для сборки'){
-      if(resultBuild){
-        sh('''#!/bin/bash
-        echo "========== Remove mark for build =========="
-        mv -f /tmp/build /tmp/build.other''')
+      steps{
+        script{
+            if(resultBuild){
+              sh('''#!/bin/bash
+              echo "========== Remove mark for build =========="
+              mv -f /tmp/build /tmp/build.other''')
+            }
+        }
       }
     }
-
-    if(resultBuild) {
-        currentBuild.result = "SUCCESS"
-    } else {
-        currentBuild.result = "FAILURE"
+  }
+  post{
+    success{
+      script{
+        VERSION=readFile('/tmp/build.other').trim()
+        build(job: "roschat-ms_pipeline",
+          parameters:
+          [string(name: 'VER', value: "${VERSION}")])
+      }
     }
+  }
 }
