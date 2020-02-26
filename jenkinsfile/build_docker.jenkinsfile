@@ -112,7 +112,7 @@ pipeline{
               def exists_docker=sh script: "docker ps -a | grep roschat-server_${VERSION}", returnStdout: true
               if(exists_docker){
                 sh "docker stop roschat-server_${VERSION}"
-                sh "docker rm roschat-server_${VERSION}""
+                sh "docker rm roschat-server_${VERSION}"
                 sh "docker rmi roschat-server:${VERSION}"
               }
 
