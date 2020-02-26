@@ -2,6 +2,7 @@
 
 def resultBuild = true
 def VERSION
+def OTHER_VERSION
 STATUS="Успешно"
 properties([disableConcurrentBuilds()])
 
@@ -31,14 +32,17 @@ pipeline{
     stage("Сборка образа docker"){
       steps{
         script{
+          VERSION=readFile('/tmp/build').trim()
+          VERSION="${VERSION}_${BUILD_NUMBER}"
+          OTHER_VERSION=readFile('/tmp/build.other').trim()
           try{
             sh('''#!/bin/bash
             echo "========== Copy rpms =========="
             if [ ! -d ${WORKSPACE}/rpms ]; then
             cp -r /tmp/rpms ${WORKSPACE}
-            fi
+            fi''')
             echo "========== Build docker image =========="
-            docker build -t roschat-server:$(cat /tmp/build) .''')
+            sh "docker build -t roschat-server:${VERSION} ."
           }catch(err){
             currentBuild.result = "FAILURE"
             error("Не удалось собрать образ docker")
@@ -50,13 +54,14 @@ pipeline{
       steps{
         script{
           try{
-            sh('''#!/bin/bash
             echo "========== Stop docker container =========="
-            if test -f /tmp/build.other; then
-              if docker ps | grep roschat-server; then
-              docker container stop roschat-server_$(cat /tmp/build.other)
-              fi
-            fi''')
+            def exists_old_docker=fileExists '/tmp/build.other'
+            if(exists_old_docker){
+              sh('''#!/bin/bash
+                if docker ps | grep roschat-server; then
+                  docker container stop roschat-server_$(cat /tmp/build.other)
+                fi''')
+            }
           }catch(err){
             currentBuild.result = "FAILURE"
             error("Не удалось остановить старый контейнер")
@@ -68,9 +73,9 @@ pipeline{
       steps{
         script{
           try{
-            sh('''#!/bin/bash
             echo "========== Start docker container =========="
-            docker run -d --name=roschat-server_$(cat /tmp/build) \
+            sh('''#!/bin/bash
+            docker run -d --name=roschat-server_$(cat /tmp/build)_${BUILD_NUMBER} \
               --mount type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup \
               --mount type=tmpfs,destination=/run \
               --mount type=tmpfs,destination=/run/lock \
@@ -80,7 +85,7 @@ pipeline{
               -p 1110:1110 -p 2223:2223 -p 2222:22 \
               -p 49000-49150:49000-49150/udp \
               -p 49152-49182:49152-49182 \
-              -p 161:161/udp roschat-server:$(cat /tmp/build)''')
+              -p 161:161/udp roschat-server:$(cat /tmp/build)_${BUILD_NUMBER}''')
           }catch(e){
             resultBuild=false
           }
@@ -91,9 +96,8 @@ pipeline{
       steps{
         script{
           try{
-            sh('''#!/bin/bash
             echo "========== Install soft on docker container =========="
-            docker container exec roschat-server_$(cat /tmp/build) /tmp/start_ansible_playbook.sh''')
+            sh "docker container exec roschat-server_${VERSION} /tmp/start_ansible_playbook.sh"
           }catch(e){
             resultBuild=false
           }
@@ -104,21 +108,20 @@ pipeline{
       steps{
         script{
             if(!resultBuild){
-              sh('''#!/bin/bash
-              echo "========== Faild build docker image and start container =========="
-              if docker ps | grep roschat-server_$(cat /tmp/build); then
-                docker stop roschat-server_$(cat /tmp/build)
-                docker rm roschat-server_$(cat /tmp/build)
-                docker rmi roschat-server:$(cat /tmp/build)
-              fi
+              echo '========== Faild build docker image and start container =========='
+              def exists_docker=sh script: "docker ps -a | grep roschat-server_${VERSION}", returnStdout: true
+              if(exists_docker){
+                sh "docker stop roschat-server_${VERSION}"
+                sh "docker rm roschat-server_${VERSION}""
+                sh "docker rmi roschat-server:${VERSION}"
+              }
 
               echo "========== Start old container =========="
-              docker start roschat-server_$(cat /tmp/build.other)
-              docker container exec roschat-server_$(cat /tmp/build.other) /tmp/start_services.sh''')
+              sh "docker start roschat-server_${OTHER_VERSION}"
+              sh "docker container exec roschat-server_${OTHER_VERSION} /tmp/start_services.sh"
             }else{
-              sh('''#!/bin/bash
               echo "========== Remove old container =========="
-              docker rm roschat-server_$(cat /tmp/build.other''')
+              sh "docker rm roschat-server_${OTHER_VERSION}"
             }
         }
       }
@@ -127,9 +130,10 @@ pipeline{
       steps{
         script{
           if(resultBuild){
-            sh('''#!/bin/bash
             echo "========== Remove mark for build =========="
-            mv -f /tmp/build /tmp/build.other''')
+            sh('''#!/bin/bash
+            rm -f /tmp/build''')
+            sh "echo ${VERSION} > /tmp/build.other"
           }
         }
       }
@@ -138,7 +142,6 @@ pipeline{
   post{
     always{
       script{
-        VERSION=readFile('/tmp/build.other').trim()
         if(!resultBuild){
           STATUS="Провал"
         }
@@ -150,7 +153,6 @@ pipeline{
     }
     success{
       script{
-        VERSION=readFile('/tmp/build.other').trim()
         build(job: "roschat-server-testing",
           parameters:
           [string(name: 'VER', value: "${VERSION}")])
