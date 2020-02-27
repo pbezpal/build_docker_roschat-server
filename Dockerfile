@@ -7,7 +7,7 @@ LABEL maintainer="bezpalko@infotek.ru"
 COPY ./CentOS-ORMP.repo /etc/yum.repos.d/
 COPY ./license/ /opt/roschat-server/certificates/https/
 COPY ./start_ansible_playbook.sh /tmp/
-COPY ./start_services.sh /tmp/
+COPY ./start_services.sh /opt/
 COPY ./server_playbook.yml /tmp/
 COPY ./rpms/ /tmp/
 

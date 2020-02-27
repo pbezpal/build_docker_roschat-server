@@ -7,4 +7,6 @@ systemctl start rtpengine
 systemctl start wlan
 systemctl start roschat-db
 systemctl start roschat-ms
+systemctl start snmpd
+systemctl start roschat-snmp
 systemctl start sshd

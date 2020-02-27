@@ -118,7 +118,7 @@ pipeline{
 
               echo "========== Start old container =========="
               sh "docker start roschat-server_${OTHER_VERSION}"
-              sh "docker container exec roschat-server_${OTHER_VERSION} /tmp/start_services.sh"
+              sh "docker container exec roschat-server_${OTHER_VERSION} /opt/start_services.sh"
             }else{
               echo "========== Remove old container =========="
               sh "docker rm roschat-server_${OTHER_VERSION}"
