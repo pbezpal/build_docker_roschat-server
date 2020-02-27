@@ -149,7 +149,7 @@ pipeline{
           STATUS="Провал"
         }
       }
-      emailext body: "Собираемая версия сервера - roschat-server:${VERSION} \n Результат сборки - ${STATUS}", subject: 'Сборка Росчат сервера', to: 'bezpalko'
+      emailext body: "Собираемая версия сервера - roschat-server:${VERSION} \n Результат сборки - ${STATUS}", subject: 'Сборка Росчат сервера', to: 'bezpalko', from: 'jenkins@ros.chat'
     }
     success{
       script{
