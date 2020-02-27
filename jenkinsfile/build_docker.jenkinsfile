@@ -16,7 +16,7 @@ pipeline{
         deleteDir();
       }
     }
-    /*stage("Клонирование GIT"){
+    stage("Клонирование GIT"){
       steps{
         echo "========== Cloning GIT =========="
         script{
@@ -28,7 +28,7 @@ pipeline{
           }
         }
       }
-    }*/
+    }
     stage("Сборка образа docker"){
       steps{
         script{
