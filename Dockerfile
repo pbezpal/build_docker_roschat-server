@@ -20,9 +20,6 @@ RUN yum -y install ansible \
   mutt \
   mc \
   net-tools \
-  freetype \
-  fribidi \
-  fontconfig \
   openssh-server && \
   yum clean all
 
