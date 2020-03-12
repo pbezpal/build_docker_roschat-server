@@ -92,7 +92,7 @@ pipeline{
         }
       }
     }
-    stage("Установки ПО на сервер"){
+    stage("Установка ПО на сервер"){
       steps{
         script{
           try{
@@ -126,7 +126,7 @@ pipeline{
         }
       }
     }
-    stage('Удаление метки для сборки образа docker'){
+    stage('Удаление метки для сборки образа'){
       steps{
         script{
           if(resultBuild){
