@@ -29,7 +29,7 @@ pipeline{
         }
       }
     }
-    stage("Сборка образа docker"){
+    stage("Сборка образа"){
       steps{
         script{
           VERSION=readFile('/tmp/build').trim()
