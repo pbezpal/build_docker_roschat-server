@@ -10,3 +10,4 @@ systemctl start roschat-ms
 systemctl start snmpd
 systemctl start roschat-snmp
 systemctl start sshd
+systemctl start kms
