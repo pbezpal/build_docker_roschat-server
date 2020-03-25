@@ -38,7 +38,7 @@ pipeline{
             OTHER_VERSION=readFile('/tmp/build.other').trim()
             if(exists_old_docker){
               sh('''#!/bin/bash
-                echo "TAG=${OTHER_VERSION} > ${WORKSPACE}/.env"
+                echo TAG=${OTHER_VERSION} > ${WORKSPACE}/.env
                 if docker ps | grep roschat-server; then
                   docker-compose down roschat-server
                 fi''')
