@@ -55,7 +55,7 @@ pipeline{
             echo "========== TAG for new docker =========="
             sh "echo TAG=${VERSION} > ${WORKSPACE}/.env"
             echo "========== Copy rpms =========="
-            sh "test ! -d ${WORKSPACE}/rpms ] && cp -r /tmp/rpms ${WORKSPACE}"
+            sh "test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}"
             echo "========== Build docker image and run container =========="
             sh "docker-compose up -d"
           }catch(err){
@@ -84,7 +84,7 @@ pipeline{
               echo '========== Faild build docker image and start container =========='
               def exists_docker=sh script: "docker ps -a | grep roschat-server_${VERSION}", returnStdout: true
               if(exists_docker){
-                sh "docker-compose down && docker rmi roschat-server:${VERSION}"                
+                sh "docker-compose down && docker rmi roschat-server:${VERSION}"
               }
 
               echo "========== Start old container =========="
