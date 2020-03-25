@@ -29,37 +29,18 @@ pipeline{
         }
       }
     }
-    stage("Сборка образа"){
-      steps{
-        script{
-          VERSION=readFile('/tmp/build').trim()
-          VERSION="${VERSION}_${BUILD_NUMBER}"
-          OTHER_VERSION=readFile('/tmp/build.other').trim()
-          try{
-            sh('''#!/bin/bash
-            echo "========== Copy rpms =========="
-            if [ ! -d ${WORKSPACE}/rpms ]; then
-            cp -r /tmp/rpms ${WORKSPACE}
-            fi''')
-            echo "========== Build docker image =========="
-            sh "docker build -t roschat-server:${VERSION} ."
-          }catch(err){
-            currentBuild.result = "FAILURE"
-            error("Не удалось собрать образ docker")
-          }
-        }
-      }
-    }
     stage("Остановка старого контейнера"){
       steps{
         script{
           try{
             echo "========== Stop docker container =========="
             def exists_old_docker=fileExists '/tmp/build.other'
+            OTHER_VERSION=readFile('/tmp/build.other').trim()
             if(exists_old_docker){
               sh('''#!/bin/bash
+                echo "TAG=${OTHER_VERSION}" > ${WORKSPACE}/.env
                 if docker ps | grep roschat-server; then
-                  docker container stop roschat-server_$(cat /tmp/build.other)
+                  docker-compose down roschat-server
                 fi''')
             }
           }catch(err){
@@ -69,25 +50,24 @@ pipeline{
         }
       }
     }
-    stage("Запуск нового контейнер"){
+    stage("Сборка образа и запуск контейнера"){
       steps{
         script{
+          VERSION=readFile('/tmp/build').trim()
+          VERSION="${VERSION}_${BUILD_NUMBER}"
           try{
-            echo "========== Start docker container =========="
             sh('''#!/bin/bash
-            docker run -d --name=roschat-server_$(cat /tmp/build)_${BUILD_NUMBER} \
-              --mount type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup \
-              --mount type=tmpfs,destination=/run \
-              --mount type=tmpfs,destination=/run/lock \
-              -v /var/run/docker.sock:/var/run/docker.sock \
-              -p 8080:8080 -p 80:80 -p 8081:8081 \
-              -p 443:443 -p 5060:5060/udp -p 3478:3478 \
-              -p 1110:1110 -p 2223:2223 -p 2222:22 \
-              -p 49000-49150:49000-49150/udp \
-              -p 49152-49182:49152-49182 \
-              -p 161:161/udp roschat-server:$(cat /tmp/build)_${BUILD_NUMBER}''')
-          }catch(e){
-            resultBuild=false
+            echo "========== TAG for new docker =========="
+            echo "TAG=${VERSION}" > ${WORKSPACE}/.env
+            echo "========== Copy rpms =========="
+            if [ ! -d ${WORKSPACE}/rpms ]; then
+            cp -r /tmp/rpms ${WORKSPACE}
+            fi''')
+            echo "========== Build docker image and run container =========="
+            sh "docker-compose up -d"
+          }catch(err){
+            currentBuild.result = "FAILURE"
+            error("Во время выполнения сборки/запуска была ошибка")
           }
         }
       }
@@ -111,17 +91,14 @@ pipeline{
               echo '========== Faild build docker image and start container =========='
               def exists_docker=sh script: "docker ps -a | grep roschat-server_${VERSION}", returnStdout: true
               if(exists_docker){
-                sh "docker stop roschat-server_${VERSION}"
-                sh "docker rm roschat-server_${VERSION}"
+                sh "docker-compose down"
                 sh "docker rmi roschat-server:${VERSION}"
               }
 
               echo "========== Start old container =========="
-              sh "docker start roschat-server_${OTHER_VERSION}"
-              sh "docker container exec roschat-server_${OTHER_VERSION} /opt/start_services.sh"
-            }else{
-              echo "========== Remove old container =========="
-              sh "docker rm roschat-server_${OTHER_VERSION}"
+              sh "echo "TAG=${OTHER_VERSION}" > ${WORKSPACE}/.env"
+              sh "docker-compose up -d"
+              sh "docker container exec roschat-server_${OTHER_VERSION} /tmp/start_ansible_playbook.sh"
             }
         }
       }

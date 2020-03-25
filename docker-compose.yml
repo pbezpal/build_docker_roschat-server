@@ -1,0 +1,28 @@
+version: '3.2'
+services:
+  roschat-server:
+    build: ./
+    image: roschat-server:${TAG}
+    container_name: roschat-server_${TAG}
+    network_mode: "bridge"
+    volumes:
+      - type: bind
+        source: /sys/fs/cgroup
+        target: /sys/fs/cgroup
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    tmpfs:
+      - /run
+      - /run/lock
+    ports:
+      - "8080:8080"
+      - "80:80"
+      - "8081:8081"
+      - "443:443"
+      - "5060:5060/udp"
+      - "3478:3478"
+      - "1110:1110"
+      - "2223:2223"
+      - "2222:22"
+      - "49000-49150:49000-49150/udp"
+      - "49152-49182:49152-49182"
+      - "161:161/udp"
