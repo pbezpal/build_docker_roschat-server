@@ -37,8 +37,7 @@ pipeline{
             def exists_old_docker=fileExists '/tmp/build.other'
             OTHER_VERSION=readFile('/tmp/build.other').trim()
             if(exists_old_docker){
-              sh "docker ps | grep roschat-server > /dev/null"
-              sh "if [ $? = 0 ]; then docker container stop roschat-server_${OTHER_VERSION}; fi"
+              sh "docker ps | grep roschat-server > /dev/null && docker container stop roschat-server_${OTHER_VERSION}"
             }
           }catch(err){
             currentBuild.result = "FAILURE"
@@ -85,8 +84,7 @@ pipeline{
               echo '========== Faild build docker image and start container =========='
               def exists_docker=sh script: "docker ps -a | grep roschat-server_${VERSION}", returnStdout: true
               if(exists_docker){
-                sh "docker-compose down"
-                sh "docker rmi roschat-server:${VERSION}"
+                sh "docker-compose down && docker rmi roschat-server:${VERSION}"                
               }
 
               echo "========== Start old container =========="
