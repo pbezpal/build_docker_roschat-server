@@ -37,7 +37,7 @@ pipeline{
             def exists_old_docker=fileExists '/tmp/build.other'
             OTHER_VERSION=readFile('/tmp/build.other').trim()
             if(exists_old_docker){
-              sh "docker ps | grep roschat-server > /dev/null && docker container stop roschat-server_${OTHER_VERSION}"
+              sh "docker ps | grep roschat-server > /dev/null && docker stop roschat-server_${OTHER_VERSION} && docker rm roschat-server_${OTHER_VERSION}"
             }
           }catch(err){
             currentBuild.result = "FAILURE"
@@ -91,9 +91,6 @@ pipeline{
               sh "echo TAG=${OTHER_VERSION} > ${WORKSPACE}/.env"
               sh "docker-compose up -d"
               sh "docker container exec roschat-server_${OTHER_VERSION} /tmp/start_ansible_playbook.sh"
-            }else{
-              echo "========== Stop old container =========="
-              sh "docker rm roschat-server_${OTHER_VERSION}"
             }
         }
       }
