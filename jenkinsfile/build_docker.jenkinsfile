@@ -113,14 +113,14 @@ pipeline{
           STATUS="Провал"
         }
       }
-      //emailext body: "Собираемая версия сервера - roschat-server:${VERSION} \n Результат сборки - ${STATUS}", subject: 'Сборка Росчат сервера', to: 'bezpalko', from: 'jenkins@ros.chat'
+      emailext body: "Собираемая версия сервера - roschat-server:${VERSION} \n Результат сборки - ${STATUS}", subject: 'Сборка Росчат сервера', to: 'bezpalko', from: 'jenkins@ros.chat'
     }
-    /*success{
+    success{
       script{
         build(job: "roschat-server-testing",
           parameters:
           [string(name: 'VER', value: "${VERSION}")])
       }
-    }*/
+    }
   }
 }
