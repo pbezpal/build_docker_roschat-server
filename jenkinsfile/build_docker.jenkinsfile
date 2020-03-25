@@ -38,10 +38,10 @@ pipeline{
             OTHER_VERSION=readFile('/tmp/build.other').trim()
             if(exists_old_docker){
               sh "echo TAG=${OTHER_VERSION} > ${WORKSPACE}/.env"
-              sh('''#!/bin/bash
+              sh "#!/bin/bash
                 if docker ps | grep roschat-server; then
-                  docker-compose down roschat-server
-                fi''')
+                  docker container stop roschat-server_${OTHER_VERSION}
+                fi"
             }
           }catch(err){
             currentBuild.result = "FAILURE"
