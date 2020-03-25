@@ -91,6 +91,9 @@ pipeline{
               sh "echo TAG=${OTHER_VERSION} > ${WORKSPACE}/.env"
               sh "docker-compose up -d"
               sh "docker container exec roschat-server_${OTHER_VERSION} /tmp/start_ansible_playbook.sh"
+            }else{
+              echo "========== Stop old container =========="
+              sh "docker rm roschat-server_${OTHER_VERSION}"
             }
         }
       }
