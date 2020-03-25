@@ -38,7 +38,7 @@ pipeline{
             OTHER_VERSION=readFile('/tmp/build.other').trim()
             if(exists_old_docker){
               sh('''#!/bin/bash
-                echo "TAG=${OTHER_VERSION}" > ${WORKSPACE}/.env
+                echo "TAG=${OTHER_VERSION} > ${WORKSPACE}/.env"
                 if docker ps | grep roschat-server; then
                   docker-compose down roschat-server
                 fi''')
@@ -58,7 +58,7 @@ pipeline{
           try{
             sh('''#!/bin/bash
             echo "========== TAG for new docker =========="
-            echo "TAG=${VERSION}" > ${WORKSPACE}/.env
+            echo "TAG=${VERSION} > ${WORKSPACE}/.env"
             echo "========== Copy rpms =========="
             if [ ! -d ${WORKSPACE}/rpms ]; then
             cp -r /tmp/rpms ${WORKSPACE}
