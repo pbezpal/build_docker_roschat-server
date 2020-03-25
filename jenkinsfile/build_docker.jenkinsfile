@@ -33,12 +33,9 @@ pipeline{
       steps{
         script{
           try{
-            echo "========== Stop docker container =========="
-            def exists_old_docker=fileExists '/tmp/build.other'
+            echo "========== Stop and remove old docker container =========="
             OTHER_VERSION=readFile('/tmp/build.other').trim()
-            if(exists_old_docker){
-              sh "docker ps | grep roschat-server > /dev/null && docker stop roschat-server_${OTHER_VERSION} && docker rm roschat-server_${OTHER_VERSION}"
-            }
+            sh "docker stop roschat-server_${OTHER_VERSION} && docker rm roschat-server_${OTHER_VERSION}"
           }catch(err){
             currentBuild.result = "FAILURE"
             error("Не удалось остановить старый контейнер")
