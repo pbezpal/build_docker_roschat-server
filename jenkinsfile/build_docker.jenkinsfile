@@ -96,7 +96,7 @@ pipeline{
               }
 
               echo "========== Start old container =========="
-              sh "echo "TAG=${OTHER_VERSION}" > ${WORKSPACE}/.env"
+              sh "echo TAG=${OTHER_VERSION} > ${WORKSPACE}/.env"
               sh "docker-compose up -d"
               sh "docker container exec roschat-server_${OTHER_VERSION} /tmp/start_ansible_playbook.sh"
             }
