@@ -37,11 +37,9 @@ pipeline{
             def exists_old_docker=fileExists '/tmp/build.other'
             OTHER_VERSION=readFile('/tmp/build.other').trim()
             if(exists_old_docker){
-              sh "echo TAG=${OTHER_VERSION} > ${WORKSPACE}/.env"
-              sh "#!/bin/bash
-                if docker ps | grep roschat-server; then
-                  docker container stop roschat-server_${OTHER_VERSION}
-                fi"
+              sh "docker ps | grep roschat-server > /dev/null"
+              sh "[ $? = 0 ] && docker container stop roschat-server_${OTHER_VERSION}"
+
             }
           }catch(err){
             currentBuild.result = "FAILURE"
@@ -58,11 +56,8 @@ pipeline{
           try{
             echo "========== TAG for new docker =========="
             sh "echo TAG=${VERSION} > ${WORKSPACE}/.env"
-            sh('''#!/bin/bash
             echo "========== Copy rpms =========="
-            if [ ! -d ${WORKSPACE}/rpms ]; then
-            cp -r /tmp/rpms ${WORKSPACE}
-            fi''')
+            sh "test ! -d ${WORKSPACE}/rpms ] && cp -r /tmp/rpms ${WORKSPACE}"
             echo "========== Build docker image and run container =========="
             sh "docker-compose up -d"
           }catch(err){
@@ -108,9 +103,7 @@ pipeline{
         script{
           if(resultBuild){
             echo "========== Remove mark for build =========="
-            sh('''#!/bin/bash
-            rm -f /tmp/build''')
-            sh "echo ${VERSION} > /tmp/build.other"
+            sh "rm -f /tmp/build && echo ${VERSION} > /tmp/build.other"            
           }
         }
       }
