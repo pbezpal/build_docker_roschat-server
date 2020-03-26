@@ -3,7 +3,7 @@ services:
   roschat-server:
     build: ./
     image: roschat-server:${TAG}
-    container_name: roschat-server_${TAG}
+    container_name: ${TAG}
     network_mode: "bridge"
     volumes:
       - type: bind

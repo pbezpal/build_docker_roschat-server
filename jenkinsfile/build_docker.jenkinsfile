@@ -35,7 +35,7 @@ pipeline{
           try{
             echo "========== Stop and remove old docker container =========="
             OTHER_VERSION=readFile('/tmp/build.other').trim()
-            sh "docker stop roschat-server_${OTHER_VERSION} && docker rm roschat-server_${OTHER_VERSION}"
+            sh "docker stop ${OTHER_VERSION} && docker rm ${OTHER_VERSION}"
           }catch(err){
             currentBuild.result = "FAILURE"
             error("Не удалось остановить старый контейнер")
@@ -67,7 +67,7 @@ pipeline{
         script{
           try{
             echo "========== Install soft on docker container =========="
-            sh "docker container exec roschat-server_${VERSION} /tmp/start_ansible_playbook.sh"
+            sh "docker container exec ${VERSION} /tmp/start_ansible_playbook.sh"
           }catch(e){
             resultBuild=false
           }
@@ -79,7 +79,7 @@ pipeline{
         script{
             if(!resultBuild){
               echo '========== Faild build docker image and start container =========='
-              def exists_docker=sh script: "docker ps -a | grep roschat-server_${VERSION}", returnStdout: true
+              def exists_docker=sh script: "docker ps -a | grep ${VERSION}", returnStdout: true
               if(exists_docker){
                 sh "docker-compose down && docker rmi roschat-server:${VERSION}"
               }
@@ -87,7 +87,7 @@ pipeline{
               echo "========== Start old container =========="
               sh "echo TAG=${OTHER_VERSION} > ${WORKSPACE}/.env"
               sh "docker-compose up -d"
-              sh "docker container exec roschat-server_${OTHER_VERSION} /tmp/start_ansible_playbook.sh"
+              sh "docker container exec ${OTHER_VERSION} /tmp/start_ansible_playbook.sh"
             }
         }
       }
