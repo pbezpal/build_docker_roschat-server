@@ -2,3 +2,4 @@
 build_docker.sh
 packer_playbook.yml
 server_build.json
+/license/
