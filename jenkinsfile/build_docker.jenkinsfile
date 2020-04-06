@@ -52,6 +52,8 @@ pipeline{
             echo "========== TAG for new docker =========="
             sh "echo TAG=${VERSION} > ${WORKSPACE}/.env"
             echo "========== Copy rpms =========="
+            sh "test ! -d ${WORKSPACE}/license && cp -r /tmp/license ${WORKSPACE}"
+            echo "========== Copy rpms =========="
             sh "test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}"
             echo "========== Build docker image and run container =========="
             sh "docker-compose up -d"
