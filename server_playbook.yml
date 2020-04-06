@@ -8,9 +8,8 @@
 
      - name: Settings certificates
        shell: |
-         sed -i 's/privateKey.key/private.key/' /opt/roschat-server/server/config.json
-         sed -i 's/certificate.crt/cert.crt/' /opt/roschat-server/server/config.json
-         sed -i 's/"httpsSertChain": *./"httpsSertChain": [ \n \t \t "\/opt\/roschat-server\/certificates\/https\/bundle.crt", \n \t \t "\/opt\/roschat-server\/certificates\/https\/main.crt" \n \t/' /opt/roschat-server/server/config.json
+         sed -i 's/privateKey.key/ros.chat.key/' /opt/roschat-server/server/config.json
+         sed -i 's/"httpsSertChain": *./"httpsSertChain": [ \n \t \t "\/opt\/roschat-server\/certificates\/https\/certificate_ca.crt" \n \t/' /opt/roschat-server/server/config.json
          sed -i 's/"2fa": true/"2fa": false/' /opt/roschat-server/server/config.json
 
      - name: Symlink python36
