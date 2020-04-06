@@ -20,7 +20,7 @@ RUN yum -y install ansible \
   mutt \
   mc \
   net-tools \
-  openssh-server && \
+  openssh-server \
   openssh-clients && \
   yum clean all
 
