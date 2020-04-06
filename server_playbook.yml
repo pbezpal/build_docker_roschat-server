@@ -6,6 +6,11 @@
        shell: |
          yum -y install /tmp/*.rpm
 
+     - name: Copy license
+       shell: |
+         rm -f /opt/roschat-server/certificates/https/*
+         cp -f /tmp/license/* /opt/roschat-server/certificates/https/
+
      - name: Settings certificates
        shell: |
          sed -i 's/privateKey.key/ros.chat.key/' /opt/roschat-server/server/config.json
