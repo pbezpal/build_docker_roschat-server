@@ -21,6 +21,7 @@ RUN yum -y install ansible \
   mc \
   net-tools \
   openssh-server && \
+  openssh-clients && \
   yum clean all
 
 RUN echo "[server]" >> /etc/ansible/hosts && \
