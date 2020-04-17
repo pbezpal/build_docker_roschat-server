@@ -35,7 +35,7 @@ pipeline{
           try{
             echo "========== Stop and remove old docker container =========="
             OTHER_VERSION=readFile('/tmp/build.other').trim()
-            sh "docker stop ${OTHER_VERSION} && docker rm ${OTHER_VERSION}"
+            sh "docker-compose stop && docker-compose rm -f"
           }catch(err){
             currentBuild.result = "FAILURE"
             error("Не удалось остановить старый контейнер")
