@@ -5,7 +5,7 @@ LABEL version="1.0"
 LABEL maintainer="bezpalko@infotek.ru"
 
 COPY ./CentOS-ORMP.repo /etc/yum.repos.d/
-COPY ./license /opt/
+COPY ./license/ /opt/license/
 COPY ./start_ansible_playbook.sh /opt/
 COPY ./start_services.sh /opt/
 COPY ./server_playbook.yml /opt/
