@@ -9,7 +9,7 @@
      - name: Copy license
        shell: |
          rm -f /opt/roschat-server/certificates/https/*
-         cp -f /tmp/license/* /opt/roschat-server/certificates/https/
+         cp -f /opt/license/* /opt/roschat-server/certificates/https/
 
      - name: Settings certificates
        shell: |

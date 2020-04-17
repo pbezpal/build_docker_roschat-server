@@ -69,7 +69,7 @@ pipeline{
         script{
           try{
             echo "========== Install soft on docker container =========="
-            sh "docker container exec ${VERSION} /tmp/start_ansible_playbook.sh"
+            sh "docker container exec ${VERSION} /opt/start_ansible_playbook.sh"
           }catch(e){
             resultBuild=false
           }
@@ -89,7 +89,7 @@ pipeline{
               echo "========== Start old container =========="
               sh "echo TAG=${OTHER_VERSION} > ${WORKSPACE}/.env"
               sh "docker-compose up -d"
-              sh "docker container exec ${OTHER_VERSION} /tmp/start_ansible_playbook.sh"
+              sh "docker container exec ${OTHER_VERSION} /opt/start_ansible_playbook.sh"
             }
         }
       }

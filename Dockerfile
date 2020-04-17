@@ -5,10 +5,10 @@ LABEL version="1.0"
 LABEL maintainer="bezpalko@infotek.ru"
 
 COPY ./CentOS-ORMP.repo /etc/yum.repos.d/
-COPY ./license/ /tmp/license/
-COPY ./start_ansible_playbook.sh /tmp/
+COPY ./license/ /opt/
+COPY ./start_ansible_playbook.sh /opt/
 COPY ./start_services.sh /opt/
-COPY ./server_playbook.yml /tmp/
+COPY ./server_playbook.yml /opt/
 COPY ./rpms/ /tmp/
 
 RUN yum -y install ansible \
