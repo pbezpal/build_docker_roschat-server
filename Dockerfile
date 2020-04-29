@@ -11,7 +11,9 @@ COPY ./start_services.sh /opt/
 COPY ./server_playbook.yml /opt/
 COPY ./rpms/ /tmp/
 
-RUN yum -y install ansible \
+RUN yum -y install python-yaml \
+  python-jinja2 \
+  git \
   turnserver \
   sudo \
   cryptopp \
@@ -24,7 +26,18 @@ RUN yum -y install ansible \
   openssh-clients && \
   yum clean all
 
-RUN echo "[server]" >> /etc/ansible/hosts && \
+RUN git clone http://github.com/ansible/ansible.git /tmp/ansible
+
+WORKDIR /tmp/ansible
+
+ENV PATH /tmp/ansible/bin:/sbin:/usr/sbin:/usr/bin
+
+ENV ANSIBLE_LIBRARY /tmp/ansible/library
+
+ENV PYTHONPATH /tmp/ansible/lib:$PYTHON_PATH
+
+RUN mkdir -p /etc/ansible && \
+    echo "[server]" > /etc/ansible/hosts && \
     echo "ansible_password=Art7Tykx78Dp" >> /etc/ansible/hosts && \
     chmod +x /opt/start_ansible_playbook.sh && \
     echo "root:Art7Tykx78Dp" | chpasswd
