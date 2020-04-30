@@ -21,6 +21,10 @@
        shell: |
          ln -s /usr/bin/python3.6 /usr/bin/python36
 
+     - name: Start postgres
+       shell: |
+         until sudo -u postgres psql -c "" &>/dev/null; do   echo "Waiting for PostgreSQL...";   sleep 1; done
+
      - name: Make sure a service wlan is running
        systemd:
          state: started
