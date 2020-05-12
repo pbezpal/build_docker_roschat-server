@@ -2,9 +2,14 @@
 - name: A demo to run ansible in docker container
   hosts: server
   tasks:
+     - name: Move rpms
+       shell: |
+         test ! -d /opt/rmps && mkdir /opt/rpms
+         mv /tmp/*.rpm /opt/rpms/
+  
      - name: Install rpm's server
        shell: |
-         yum -y install /tmp/*.rpm
+         yum -y install /opt/rpms/*.rpm
 
      - name: Copy license
        shell: |
