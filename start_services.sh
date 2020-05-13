@@ -1,5 +1,6 @@
 #!/bin/bash
 
+systemctl start postgresql-11
 systemctl start mariadb
 systemctl start turnserver
 systemctl start kamailio
