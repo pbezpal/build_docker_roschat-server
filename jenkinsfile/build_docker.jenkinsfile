@@ -2,7 +2,6 @@
 
 def resultBuild = true
 def VERSION
-def OTHER_VERSION
 STATUS="Успешно"
 properties([disableConcurrentBuilds()])
 
@@ -34,7 +33,6 @@ pipeline{
         script{
           try{
             echo "========== Stop and remove old docker container =========="
-            OTHER_VERSION=readFile('/tmp/build.other').trim()
             sh "docker-compose stop && docker-compose rm -f"
           }catch(err){
             currentBuild.result = "FAILURE"
@@ -88,7 +86,7 @@ pipeline{
 
               echo "========== Start old container =========="
               sh "echo TAG=latest > ${WORKSPACE}/.env"
-              sh "docker-compose up -d"
+              sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
             }else{
 			  sh "docker rmi roschat-server:latest"
 			  sh "docker commit ${VERSION} roschat-server"
@@ -101,7 +99,7 @@ pipeline{
         script{
           if(resultBuild){
             echo "========== Remove mark for build =========="
-            sh "rm -f /tmp/build && echo ${VERSION} > /tmp/build.other"
+            sh "if cat /tmp/build | grep ${VERSION}; then rm -f /tmp/build; fi"
           }
         }
       }
