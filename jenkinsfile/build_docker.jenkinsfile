@@ -87,10 +87,12 @@ pipeline{
               }
 
               echo "========== Start old container =========="
-              sh "echo TAG=${OTHER_VERSION} > ${WORKSPACE}/.env"
+              sh "echo TAG=latest > ${WORKSPACE}/.env"
               sh "docker-compose up -d"
-              sh "docker container exec ${OTHER_VERSION} /opt/start_ansible_playbook.sh"
-            }
+            }else{
+			  sh "docker rmi roschat-server:latest"
+			  sh "docker commit ${VERSION} roschat-server"
+			}
         }
       }
     }
@@ -119,10 +121,14 @@ pipeline{
     }
     success{
       script{
-        sleep 300
-        build(job: "roschat-server-testing",
-          parameters:
-          [string(name: 'VER', value: "${VERSION}")])
+		if(resultBuild){
+			sleep 300
+			build(job: "roschat-server-testing",
+			  parameters:
+			  [string(name: 'VER', value: "${VERSION}")])
+		}else{
+			echo "Сборка провалилась. См. логи"
+		}
       }
     }
   }
