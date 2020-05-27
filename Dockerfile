@@ -23,10 +23,7 @@ COPY ./start_services.sh /opt/
 COPY ./server_playbook.yml /opt/
 COPY ./rpms/ /tmp/
 
-RUN yum -y install python-yaml \
-  python-jinja2 \
-  git && \
-  yum clean all
+RUN yum -y install python-yaml python-jinja2 git && yum clean all
 
 RUN git clone http://github.com/ansible/ansible.git /tmp/ansible
 
