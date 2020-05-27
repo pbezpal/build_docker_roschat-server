@@ -51,41 +51,5 @@ pipeline{
         }
       }
     }
-    stage("Проверка успешности сборки сервера"){
-      steps{
-        script{
-            if(!resultBuild){
-              echo '========== Faild build docker image and start container =========='
-              def exists_docker=sh script: "docker ps -a | grep ${VERSION}", returnStdout: true
-              if(exists_docker){
-                sh "docker-compose down && docker rmi roschat-server:${VERSION}"
-              }
-
-              echo "========== Start old container =========="
-              sh "echo TAG=latest > ${WORKSPACE}/.env"
-              sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
-            }else{
-			  //sh "docker rmi roschat-server:latest"
-			  //sh "docker rmi roschat-server:${VERSION_OLD}"
-			  //sh "docker commit ${VERSION} roschat-server"
-			}
-        }
-      }
-    }
-    /*stage('Заливаем новый образ в репозиторий'){
-      steps{
-        script{
-          if(resultBuild){
-            echo "========== Save old mark =========="
-            sh "echo ${VERSION} > /tmp/build.old"
-			echo "========== Push build docker to docker hub =========="
-			sh "docker login -u admin -p Y@rd87846259 10.10.38.173:8123"
-			sh "docker tag roschat-server:${VERSION} 10.10.38.173:8123/roschat-server:${VERSION}"
-			sh "docker push 10.10.38.173:8123/roschat-server:${VERSION}"
-			sh "docker rmi 10.10.38.173:8123/roschat-server:${VERSION}"
-          }
-        }
-      }
-    }*/
   }
 }
