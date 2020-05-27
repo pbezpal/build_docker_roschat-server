@@ -23,7 +23,7 @@ COPY ./server_playbook.yml /opt/
 COPY ./rpms/ /tmp/
 
 RUN yum -y install epel-release
-RUN yum -y install ansible python-yaml python-jinja2 && yum clean all
+RUN yum -y install ansible && yum clean all
 
 COPY ./CentOS-ORMP.repo /etc/yum.repos.d/
 
