@@ -2,6 +2,10 @@
 - name: A demo to run ansible in docker container
   hosts: server
   tasks:
+     - name: Install packages before install server
+       shell: |
+         yum -y install turnserver sudo cryptopp cyrus-sasl-plain nodejs mutt mc net-tools openssh-server openssh-clients       
+  
      - name: Move rpms
        shell: |
          test ! -d /opt/rmps && mkdir /opt/rpms

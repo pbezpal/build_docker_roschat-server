@@ -25,17 +25,7 @@ COPY ./rpms/ /tmp/
 
 RUN yum -y install python-yaml \
   python-jinja2 \
-  git \
-  turnserver \
-  sudo \
-  cryptopp \
-  cyrus-sasl-plain \
-  nodejs \
-  mutt \
-  mc \
-  net-tools \
-  openssh-server \
-  openssh-clients && \
+  git && \
   yum clean all
 
 RUN git clone http://github.com/ansible/ansible.git /tmp/ansible
