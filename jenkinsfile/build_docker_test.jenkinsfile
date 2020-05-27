@@ -43,7 +43,7 @@ pipeline{
             echo "========== Copy rpms =========="
             sh "test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}"
             echo "========== Build docker image =========="
-            sh "docker-compose up -d"
+            sh "docker-compose build"
           }catch(err){
             currentBuild.result = "FAILURE"
             error("Ошибка сборки/запуска образа сервера")
