@@ -139,13 +139,9 @@ pipeline{
     }
     success{
       script{
-		if(RESULTED_BUILD){
-			build(job: "roschat-server-testing",
-			  parameters:
-			  [string(name: 'VER', value: "${VERSION}")])
-		}else{
-			echo "Сборка провалилась. См. логи"
-		}
+		build(job: "roschat-server-testing",
+		  parameters:
+		  [string(name: 'VER', value: "${VERSION}")])		
       }
     }
   }
