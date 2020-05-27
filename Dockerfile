@@ -22,19 +22,20 @@ COPY ./start_services.sh /opt/
 COPY ./server_playbook.yml /opt/
 COPY ./rpms/ /tmp/
 
-RUN yum -y install python-yaml python-jinja2 git cryptopp && yum clean all
+RUN yum -y install epel-release
+RUN yum -y install ansible python-yaml python-jinja2 && yum clean all
 
 COPY ./CentOS-ORMP.repo /etc/yum.repos.d/
 
-RUN git clone http://github.com/ansible/ansible.git /tmp/ansible
+#RUN git clone http://github.com/ansible/ansible.git /tmp/ansible
 
-WORKDIR /tmp/ansible
+#WORKDIR /tmp/ansible
 
-ENV PATH /tmp/ansible/bin:/sbin:/usr/sbin:/usr/bin
+#ENV PATH /tmp/ansible/bin:/sbin:/usr/sbin:/usr/bin
 
-ENV ANSIBLE_LIBRARY /tmp/ansible/library
+#ENV ANSIBLE_LIBRARY /tmp/ansible/library
 
-ENV PYTHONPATH /tmp/ansible/lib:$PYTHON_PATH
+#ENV PYTHONPATH /tmp/ansible/lib:$PYTHON_PATH
 
 RUN mkdir -p /etc/ansible && \
     echo "[server]" > /etc/ansible/hosts && \
