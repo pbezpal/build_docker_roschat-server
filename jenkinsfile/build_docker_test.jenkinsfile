@@ -1,0 +1,116 @@
+#!groovy
+
+def resultBuild = true
+def VERSION
+def VERSION_OLD
+STATUS="Успешно"
+properties([disableConcurrentBuilds()])
+
+pipeline{
+  agent{
+    label 'docker_centos'
+  }
+  stages{
+    stage("Очистка сборочной директории"){
+      steps{
+        deleteDir();
+      }
+    }
+    stage("Клонирование GIT"){
+      steps{
+        echo "========== Cloning GIT =========="
+        script{
+          try{
+            git 'ssh://bezpalko_p@10.10.199.35/opt/git/firelink/roschat-server_docker'
+          }catch(err){
+            currentBuild.result = "FAILURE"
+            error("Невозможно выполниь клонированние из репозитория git")
+          }
+        }
+      }
+    }
+    stage("Остановка старого контейнера"){
+      steps{
+        script{
+          try{
+            echo "========== Stop and remove old docker container =========="
+            sh "docker-compose stop && docker-compose rm -f"
+          }catch(err){
+            currentBuild.result = "FAILURE"
+            error("Не удалось остановить старый контейнер")
+          }
+        }
+      }
+    }
+    stage("Сборка образа и запуск контейнера"){
+      steps{
+        script{
+          VERSION=readFile('/tmp/build').trim()
+		  VERTION_OLD=readFile('/tmp/build.old').trim()
+          VERSION="${VERSION}_${BUILD_NUMBER}"
+          try{
+            echo "========== TAG for new docker =========="
+            sh "echo TAG=${VERSION} > ${WORKSPACE}/.env"
+            echo "========== Copy license =========="
+            sh "test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}"
+            echo "========== Copy rpms =========="
+            sh "test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}"
+            echo "========== Build docker image and run container =========="
+            sh "docker-compose up -d"
+          }catch(err){
+            currentBuild.result = "FAILURE"
+            error("Ошибка сборки/запуска образа сервера")
+          }
+        }
+      }
+    }
+    /*stage("Установка ПО на сервер"){
+      steps{
+        script{
+          try{
+            echo "========== Install soft on docker container =========="
+            sh "docker container exec ${VERSION} /opt/start_ansible_playbook.sh"
+          }catch(e){
+            resultBuild=false
+          }
+        }
+      }
+    }*/
+    stage("Проверка успешности сборки сервера"){
+      steps{
+        script{
+            if(!resultBuild){
+              echo '========== Faild build docker image and start container =========='
+              def exists_docker=sh script: "docker ps -a | grep ${VERSION}", returnStdout: true
+              if(exists_docker){
+                sh "docker-compose down && docker rmi roschat-server:${VERSION}"
+              }
+
+              echo "========== Start old container =========="
+              sh "echo TAG=latest > ${WORKSPACE}/.env"
+              sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
+            }else{
+			  //sh "docker rmi roschat-server:latest"
+			  sh "docker rmi roschat-server:${VERSION_OLD}"
+			  //sh "docker commit ${VERSION} roschat-server"
+			}
+        }
+      }
+    }
+    stage('Заливаем новый образ в репозиторий'){
+      steps{
+        script{
+          if(resultBuild){
+            echo "========== Save old mark =========="
+            sh "cp /tmp/build /tmp/build.old; fi"
+			echo "========== Push build docker to docker hub =========="
+			sh "docker login -u admin -p Y@rd87846259 10.10.38.173:8123"
+			sh "docker tag roschat-server:${VERSION} 10.10.38.173:8123/roschat-server:${VERSION}"
+			sh "docker push 10.10.38.173:8123/roschat-server:${VERSION}"
+			sh "docker rmi 10.10.38.173:8123/roschat-server:${VERSION}"
+          }
+        }
+      }
+    }
+  }
+}
