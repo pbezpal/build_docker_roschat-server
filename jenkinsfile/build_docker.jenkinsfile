@@ -7,7 +7,7 @@ String VERSION_OLD
 STATUS = "SUCCESS"
 properties([disableConcurrentBuilds()])
 
-def is_result_shell_build_build(command,workspace,vesrion){
+def is_result_shell_build(command,workspace,vesrion){
     RESULTED_BUILD = sh(
         script: command,
         returnStatus: true) == 0
