@@ -77,7 +77,7 @@ pipeline{
         script{
           if(resultBuild){
             echo "========== Save old mark =========="
-            sh "cp /tmp/build /tmp/build.old; fi"
+            sh "cp -f /tmp/build /tmp/build.old"
 			echo "========== Push build docker to docker hub =========="
 			sh "docker login -u admin -p Y@rd87846259 10.10.38.173:8123"
 			sh "docker tag roschat-server:${VERSION} 10.10.38.173:8123/roschat-server:${VERSION}"
