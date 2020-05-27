@@ -46,7 +46,7 @@ pipeline{
       steps{
         script{
           VERSION=readFile('/tmp/build').trim()
-		  VERTION_OLD=readFile('/tmp/build.old').trim()
+		  VERSION_OLD=readFile('/tmp/build.old').trim()
           VERSION="${VERSION}_${BUILD_NUMBER}"
           try{
             echo "========== TAG for new docker =========="
