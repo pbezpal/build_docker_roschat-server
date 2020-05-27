@@ -1,113 +1,123 @@
 #!groovy
 
-def resultBuild = true
-def VERSION
-def VERSION_OLD
-STATUS="Успешно"
+Boolean RESULTED_BUILD
+Boolean AFTER_BUILD
+String VERSION
+String VERSION_OLD
+STATUS = "SUCCESS"
 properties([disableConcurrentBuilds()])
+
+def is_result_shell_build_build(command,workspace,vesrion){
+    RESULTED_BUILD = sh(
+        script: command,
+        returnStatus: true) == 0
+    if(!RESULTED_BUILD){
+        currentBuild.result = 'ABORTED'
+		def exists_docker=sh(
+			script: "docker ps -a | grep ${version}",
+			returnStdout: true) == 0
+        if(exists_docker){
+			sh "docker-compose down && docker rmi roschat-server:${version}"
+        }
+
+        echo "========== Start old container =========="
+		exists_latest = sh(
+			script: "docker ps | grep latest",
+			returnStdout: true) == 0
+		if(!exists_latest){
+			sh "echo TAG=latest > ${workspace}/.env"
+			sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
+		}
+		error()
+		return
+    }
+}
+
+def is_result_shell_after_build(command,text){
+	AFTER_BUILD = sh(
+        script: command,
+        returnStatus: true) == 0
+	if(!AFTER_BUILD){
+		echo text
+		error()
+	}
+}
 
 pipeline{
   agent{
     label 'docker_centos'
   }
   stages{
-    stage("Очистка сборочной директории"){
+    stage("Cleaning the assembly directory"){
       steps{
         deleteDir();
       }
     }
-    stage("Клонирование GIT"){
+    stage("Clonning from a git repository"){
       steps{
         echo "========== Cloning GIT =========="
         script{
           try{
             git 'ssh://bezpalko_p@10.10.199.35/opt/git/firelink/roschat-server_docker'
           }catch(err){
-            currentBuild.result = "FAILURE"
+            currentBuild.result = "ABORTED"
             error("Невозможно выполниь клонированние из репозитория git")
           }
         }
       }
     }
-    stage("Остановка старого контейнера"){
+    stage("Stopping old container"){
       steps{
         script{
-          try{
-            echo "========== Stop and remove old docker container =========="
-            sh "docker-compose stop && docker-compose rm -f"
-          }catch(err){
-            currentBuild.result = "FAILURE"
-            error("Не удалось остановить старый контейнер")
-          }
+          echo "========== Stop and remove old docker container =========="
+          is_result_shell_build("docker-compose stop && docker-compose rm -f",WORKSPACE,VERSION)
         }
       }
     }
-    stage("Сборка образа и запуск контейнера"){
+    stage("Build docker image and run docker container"){
       steps{
         script{
-          VERSION=readFile('/tmp/build').trim()
-		  VERSION_OLD=readFile('/tmp/build.old').trim()
-          VERSION="${VERSION}_${BUILD_NUMBER}"
-          try{
-            echo "========== TAG for new docker =========="
-            sh "echo TAG=${VERSION} > ${WORKSPACE}/.env"
-            echo "========== Copy license =========="
-            sh "test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}"
-            echo "========== Copy rpms =========="
-            sh "test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}"
-            echo "========== Build docker image and run container =========="
-            sh "docker-compose up -d"
-          }catch(err){
-            currentBuild.result = "FAILURE"
-            error("Ошибка сборки/запуска образа сервера")
-          }
+			VERSION=readFile('/tmp/build').trim()
+			VERSION_OLD=readFile('/tmp/build.old').trim()
+			VERSION="${VERSION}_${BUILD_NUMBER}"
+			echo "========== TAG for new docker =========="
+			is_result_shell_build("echo TAG=${VERSION} > ${WORKSPACE}/.env",WORKSPACE,VERSION)
+			echo "========== Copy license =========="
+			is_result_shell_build("test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}",WORKSPACE,VERSION)
+			echo "========== Copy rpms =========="
+			is_result_shell_build("test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}",WORKSPACE,VERSION)
+			echo "========== Build docker image and run container =========="
+			is_result_shell_build("docker-compose up -d")
         }
       }
     }
-    stage("Установка ПО на сервер"){
+    stage("Installing soft to the server"){
       steps{
         script{
-          try{
-            echo "========== Install soft on docker container =========="
-            sh "docker container exec ${VERSION} /opt/start_ansible_playbook.sh"
-          }catch(e){
-            resultBuild=false
-          }
+			echo "========== Install soft on docker container =========="
+			is_result_shell_build("docker container exec ${VERSION} /opt/start_ansible_playbook.sh")
         }
       }
     }
-    stage("Проверка успешности сборки сервера"){
+    stage("Commit docker image after build"){
       steps{
         script{
-            if(!resultBuild){
-              echo '========== Faild build docker image and start container =========='
-              def exists_docker=sh script: "docker ps -a | grep ${VERSION}", returnStdout: true
-              if(exists_docker){
-                sh "docker-compose down && docker rmi roschat-server:${VERSION}"
-              }
-
-              echo "========== Start old container =========="
-              sh "echo TAG=latest > ${WORKSPACE}/.env"
-              sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
-            }else{
-			  sh "docker rmi roschat-server:latest"
-			  sh "docker rmi roschat-server:${VERSION_OLD}"
-			  sh "docker commit ${VERSION} roschat-server"
-			}
+		    is_result_shell_after_build("docker rmi roschat-server:latest","Can't to delete docker image of latest version")
+		    is_result_shell_after_build("docker rmi roschat-server:${VERSION_OLD}","Can't to delete remove docker of old version")
+		    is_result_shell_after_build("docker commit ${VERSION} roschat-server","Can't commit latest version docker image")			
         }
       }
     }
-    stage('Заливаем новый образ в репозиторий'){
+    stage('Pushing docker image to the docker registry'){
       steps{
         script{
-          if(resultBuild){
-            echo "========== Save old mark =========="
-            sh "echo ${VERSION} > /tmp/build.old"
+            echo "========== Save old tag =========="
+            is_result_shell_after_build("echo ${VERSION} > /tmp/build.old","Can't save mark old image tag`")
 			echo "========== Push build docker to docker hub =========="
-			sh "docker login -u admin -p Y@rd87846259 10.10.38.173:8123"
-			sh "docker tag roschat-server:${VERSION} 10.10.38.173:8123/roschat-server:${VERSION}"
-			sh "docker push 10.10.38.173:8123/roschat-server:${VERSION}"
-			sh "docker rmi 10.10.38.173:8123/roschat-server:${VERSION}"
+			is_result_shell_after_build("docker login -u admin -p Y@rd87846259 10.10.38.173:8123","Can't login docker registry")
+			is_result_shell_after_build("docker tag roschat-server:${VERSION} 10.10.38.173:8123/roschat-server:${VERSION}","Can't tag old docker image for docker registry")
+			is_result_shell_after_build("docker push 10.10.38.173:8123/roschat-server:${VERSION}","Can't push old docker image to docker registry")
+			is_result_shell_after_build("docker rmi 10.10.38.173:8123/roschat-server:${VERSION}","Can't to delete tag for docker registry")
           }
         }
       }
@@ -116,18 +126,18 @@ pipeline{
   post{
     always{
       script{
-        if(!resultBuild){
-          STATUS="Провал"
+        if(!RESULTED_BUILD){
+          STATUS="FAILD"
         }
         if(currentBuild.result != "SUCCESS"){
-          STATUS="Провал"
+          STATUS="FAILD"
         }
       }
-      emailext body: "Собираемая версия сервера - roschat-server:${VERSION} \n Результат сборки - ${STATUS}", subject: 'Сборка Росчат сервера', to: 'bezpalko', from: 'jenkins@ros.chat'
+      emailext body: "Server version - roschat-server:${VERSION} \n Result build - ${STATUS}", subject: 'Build Roschat server', to: 'bezpalko', from: 'jenkins@ros.chat'
     }
     success{
       script{
-		if(resultBuild){
+		if(RESULTED_BUILD){
 			build(job: "roschat-server-testing",
 			  parameters:
 			  [string(name: 'VER', value: "${VERSION}")])
