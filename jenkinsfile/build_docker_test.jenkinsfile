@@ -66,13 +66,13 @@ pipeline{
               sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
             }else{
 			  //sh "docker rmi roschat-server:latest"
-			  sh "docker rmi roschat-server:${VERSION_OLD}"
+			  //sh "docker rmi roschat-server:${VERSION_OLD}"
 			  //sh "docker commit ${VERSION} roschat-server"
 			}
         }
       }
     }
-    stage('Заливаем новый образ в репозиторий'){
+    /*stage('Заливаем новый образ в репозиторий'){
       steps{
         script{
           if(resultBuild){
@@ -86,6 +86,6 @@ pipeline{
           }
         }
       }
-    }
+    }*/
   }
 }
