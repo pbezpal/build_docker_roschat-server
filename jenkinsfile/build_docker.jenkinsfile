@@ -87,7 +87,7 @@ pipeline{
 			echo "========== Copy rpms =========="
 			is_result_shell_build("test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}",WORKSPACE,VERSION)
 			echo "========== Build docker image and run container =========="
-			is_result_shell_build("docker-compose up -d")
+			is_result_shell_build("docker-compose up -d",WORKSPACE,VERSION)
         }
       }
     }
