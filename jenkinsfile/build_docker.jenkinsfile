@@ -2,6 +2,7 @@
 
 def resultBuild = true
 def VERSION
+def VERSION_OLD
 STATUS="Успешно"
 properties([disableConcurrentBuilds()])
 
@@ -45,6 +46,7 @@ pipeline{
       steps{
         script{
           VERSION=readFile('/tmp/build').trim()
+		  VERTION_OLD=readFile('/tmp/build.old').trim()
           VERSION="${VERSION}_${BUILD_NUMBER}"
           try{
             echo "========== TAG for new docker =========="
@@ -57,7 +59,7 @@ pipeline{
             sh "docker-compose up -d"
           }catch(err){
             currentBuild.result = "FAILURE"
-            error("Во время выполнения сборки/запуска была ошибка")
+            error("Ошибка сборки/запуска образа сервера")
           }
         }
       }
@@ -89,17 +91,23 @@ pipeline{
               sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
             }else{
 			  sh "docker rmi roschat-server:latest"
+			  sh "docker rmi roschat-server:${VERSION_OLD}"
 			  sh "docker commit ${VERSION} roschat-server"
 			}
         }
       }
     }
-    stage('Удаление метки для сборки образа'){
+    stage('Заливаем новый образ в репозиторий'){
       steps{
         script{
           if(resultBuild){
-            echo "========== Remove mark for build =========="
-            sh "if cat /tmp/build | grep ${VERSION}; then rm -f /tmp/build; fi"
+            echo "========== Save old mark =========="
+            sh "cp /tmp/build /tmp/build.old; fi"
+			echo "========== Push build docker to docker hub =========="
+			sh "docker login -u admin -p Y@rd87846259 10.10.38.173:8123"
+			sh "docker tag roschat-server:${VERSION} 10.10.38.173:8123/roschat-server:${VERSION}"
+			sh "docker push 10.10.38.173:8123/roschat-server:${VERSION}"
+			sh "docker rmi 10.10.38.173:8123/roschat-server:${VERSION}"
           }
         }
       }
