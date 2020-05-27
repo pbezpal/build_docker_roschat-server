@@ -69,8 +69,14 @@ pipeline{
         script{
           try{
             echo "========== Install soft on docker container =========="
-            sh "docker container exec ${VERSION} /opt/start_ansible_playbook.sh"
-          }catch(e){
+            sh "docker container exec it -u 0 ${VERSION} bash"
+			sh "yum -y install cryptopp turnserver sudo cyrus-sasl-plain nodejs mutt mc net-tools openssh-server openssh-clients"
+			sh "test ! -d /opt/rmps && mkdir /opt/rpms"
+			sh "mv /tmp/*.rpm /opt/rpms/"
+			sh "yum -y install /opt/rpms/*.rpm"
+			sh "exit"
+			sh "docker container exec ${VERSION} /opt/start_ansible_playbook.sh"
+          }catch(err){
             resultBuild=false
           }
         }
