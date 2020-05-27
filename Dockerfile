@@ -16,7 +16,6 @@ CMD ["--log-level=info"]
 
 STOPSIGNAL SIGRTMIN+3
 
-COPY ./CentOS-ORMP.repo /etc/yum.repos.d/
 COPY ./license/ /opt/license/
 COPY ./start_ansible_playbook.sh /opt/
 COPY ./start_services.sh /opt/
@@ -24,6 +23,8 @@ COPY ./server_playbook.yml /opt/
 COPY ./rpms/ /tmp/
 
 RUN yum -y install python-yaml python-jinja2 git && yum clean all
+
+COPY ./CentOS-ORMP.repo /etc/yum.repos.d/
 
 RUN git clone http://github.com/ansible/ansible.git /tmp/ansible
 

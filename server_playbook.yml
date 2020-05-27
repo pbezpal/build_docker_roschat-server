@@ -4,7 +4,7 @@
   tasks:
      - name: Install packages before install server
        shell: |
-         yum -y install turnserver sudo cryptopp cyrus-sasl-plain nodejs mutt mc net-tools openssh-server openssh-clients       
+         yum -y install turnserver sudo cryptopp cyrus-sasl-plain nodejs mutt mc net-tools       
   
      - name: Move rpms
        shell: |
