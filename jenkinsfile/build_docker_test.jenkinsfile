@@ -64,18 +64,6 @@ pipeline{
         }
       }
     }
-    /*stage("Установка ПО на сервер"){
-      steps{
-        script{
-          try{
-            echo "========== Install soft on docker container =========="
-            sh "docker container exec ${VERSION} /opt/start_ansible_playbook.sh"
-          }catch(e){
-            resultBuild=false
-          }
-        }
-      }
-    }*/
     stage("Проверка успешности сборки сервера"){
       steps{
         script{
