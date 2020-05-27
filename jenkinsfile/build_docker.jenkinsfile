@@ -111,14 +111,13 @@ pipeline{
     stage('Pushing docker image to the docker registry'){
       steps{
         script{
-            echo "========== Save old tag =========="
-            is_result_shell_after_build("echo ${VERSION} > /tmp/build.old","Can't save mark old image tag`")
+			echo "========== Save old tag =========="
+			is_result_shell_after_build("echo ${VERSION} > /tmp/build.old","Can't save mark old image tag`")
 			echo "========== Push build docker to docker hub =========="
 			is_result_shell_after_build("docker login -u admin -p Y@rd87846259 10.10.38.173:8123","Can't login docker registry")
 			is_result_shell_after_build("docker tag roschat-server:${VERSION} 10.10.38.173:8123/roschat-server:${VERSION}","Can't tag old docker image for docker registry")
 			is_result_shell_after_build("docker push 10.10.38.173:8123/roschat-server:${VERSION}","Can't push old docker image to docker registry")
 			is_result_shell_after_build("docker rmi 10.10.38.173:8123/roschat-server:${VERSION}","Can't to delete tag for docker registry")
-          }
         }
       }
     }
