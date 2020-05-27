@@ -29,6 +29,19 @@ pipeline{
         }
       }
     }
+	stage("Остановка старого контейнера"){
+      steps{
+        script{
+          try{
+            echo "========== Stop and remove old docker container =========="
+            sh "docker-compose stop && docker-compose rm -f"
+          }catch(err){
+            currentBuild.result = "FAILURE"
+            error("Не удалось остановить старый контейнер")
+          }
+        }
+      }
+    }
     stage("Сборка образа и запуск контейнера"){
       steps{
         script{
