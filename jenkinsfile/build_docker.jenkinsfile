@@ -4,7 +4,7 @@ Boolean RESULTED_BUILD
 Boolean AFTER_BUILD
 String VERSION
 String VERSION_OLD
-STATUS = "SUCCESS"
+String STATUS
 properties([disableConcurrentBuilds()])
 
 def is_result_shell_build(command,workspace,vesrion){
@@ -31,6 +31,7 @@ def is_result_shell_build(command,workspace,vesrion){
 		error()
 		return
     }
+	STATUS="SUCCESS"
 }
 
 def is_result_shell_after_build(command,text){
@@ -128,9 +129,6 @@ pipeline{
   post{
     always{
       script{
-        if(!RESULTED_BUILD){
-          STATUS="FAILD"
-        }
         if(currentBuild.result != "SUCCESS"){
           STATUS="FAILD"
         }
