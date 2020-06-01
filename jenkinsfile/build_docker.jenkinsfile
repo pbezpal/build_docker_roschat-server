@@ -4,7 +4,7 @@ Boolean RESULTED_BUILD
 Boolean AFTER_BUILD
 String VERSION
 String VERSION_OLD
-String STATUS
+String STATUS="SUCCESS"
 properties([disableConcurrentBuilds()])
 
 def is_result_shell_build(command,workspace,vesrion){
@@ -31,7 +31,6 @@ def is_result_shell_build(command,workspace,vesrion){
 		error()
 		return
     }
-	STATUS="SUCCESS"
 }
 
 def is_result_shell_after_build(command,text){
