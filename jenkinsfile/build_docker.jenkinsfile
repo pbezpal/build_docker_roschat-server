@@ -136,6 +136,7 @@ pipeline{
     }
     success{
       script{
+	    sleep 60
 		build(job: "roschat-server-testing",
 		  parameters:
 		  [string(name: 'VER', value: "${VERSION}")])		
