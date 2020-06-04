@@ -35,7 +35,7 @@ pipeline{
         deleteDir();
       }
     }
-    stage("Clonning from a git repository"){
+    stage("Cloning from a git repository"){
       steps{
         echo "========== Cloning GIT =========="
         script{
