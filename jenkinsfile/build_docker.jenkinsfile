@@ -1,45 +1,28 @@
 #!groovy
 
-Boolean RESULTED_BUILD
-Boolean AFTER_BUILD
 String VERSION
 String VERSION_OLD
-String STATUS="SUCCESS"
 properties([disableConcurrentBuilds()])
 
-def is_result_shell_build(command,workspace,vesrion){
-    RESULTED_BUILD = sh(
-        script: command,
-        returnStatus: true) == 0
-    if(!RESULTED_BUILD){
-        currentBuild.result = 'ABORTED'
-		def exists_docker=sh(
-			script: "docker ps -a | grep ${version}",
-			returnStdout: true) == 0
-        if(exists_docker){
-			sh "docker-compose down && docker rmi roschat-server:${version}"
+def is_result_shell_build(command,text){
+    echo currentBuild.result
+    if(currentBuild.result == 'SUCCESS'){
+        try{
+            sh command    
+        }catch(err){
+            error(text)
+            currentBuild.result = 'ABORTED'
         }
-
-        echo "========== Start old container =========="
-		exists_latest = sh(
-			script: "docker ps | grep latest",
-			returnStdout: true) == 0
-		if(!exists_latest){
-			sh "echo TAG=latest > ${workspace}/.env"
-			sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
-		}
-		error()
-		return
     }
 }
 
 def is_result_shell_after_build(command,text){
-	AFTER_BUILD = sh(
-        script: command,
-        returnStatus: true) == 0
-	if(!AFTER_BUILD){
-		echo text
-		error()
+	if(currentBuild.result == 'SUCCESS'){
+    	try{
+    	  sh command  
+    	}catch(err){
+    	    error(text)
+    	}
 	}
 }
 
@@ -61,8 +44,9 @@ pipeline{
             git 'ssh://bezpalko_p@10.10.199.35/opt/git/firelink/roschat-server_docker'
           }catch(err){
             currentBuild.result = "ABORTED"
-            error("Невозможно выполниь клонированние из репозитория git")
+            error("Error copying from git repository")
           }
+		  currentBuild.result = "SUCCESS"
         }
       }
     }
@@ -70,7 +54,7 @@ pipeline{
       steps{
         script{
           echo "========== Stop and remove old docker container =========="
-          is_result_shell_build("docker-compose stop && docker-compose rm -f",WORKSPACE,VERSION)
+          is_result_shell_build("docker-compose stop && docker-compose rm -f","Can't stop old docker container")
         }
       }
     }
@@ -81,13 +65,13 @@ pipeline{
 			VERSION_OLD=readFile('/tmp/build.old').trim()
 			VERSION="${VERSION}_${BUILD_NUMBER}"
 			echo "========== TAG for new docker =========="
-			is_result_shell_build("echo TAG=${VERSION} > ${WORKSPACE}/.env",WORKSPACE,VERSION)
+			is_result_shell_build("echo TAG=${VERSION} > ${WORKSPACE}/.env","Can't write a tag to a ${WORKSPACE}/.env")
 			echo "========== Copy license =========="
-			is_result_shell_build("test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}",WORKSPACE,VERSION)
+			is_result_shell_build("test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}","Can't copy license to a ${WORKSPACE}")
 			echo "========== Copy rpms =========="
-			is_result_shell_build("test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}",WORKSPACE,VERSION)
+			is_result_shell_build("test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}","Can't copy rpms to a ${WORKSPACE}")
 			echo "========== Build docker image and run container =========="
-			is_result_shell_build("docker-compose up -d",WORKSPACE,VERSION)
+			is_result_shell_build("docker-compose up -d","The result of the assembly and launch of the container - failed")
         }
       }
     }
@@ -95,7 +79,7 @@ pipeline{
       steps{
         script{
 			echo "========== Install soft on docker container =========="
-			is_result_shell_build("docker container exec ${VERSION} /opt/start_ansible_playbook.sh",WORKSPACE,VERSION)
+			is_result_shell_build("docker container exec ${VERSION} /opt/start_ansible_playbook.sh","Error installing software on server")
         }
       }
     }
@@ -129,10 +113,23 @@ pipeline{
     always{
       script{
         if(currentBuild.result != "SUCCESS"){
-          STATUS="FAILD"
+	      Boolean DOCKER = sh(
+			script: "docker ps -a | grep ${VERSION}",
+			returnStatus: true) == 0
+		  if(DOCKER){
+			sh "docker-compose down && docker rmi roschat-server:${VERSION}"
+		  }
+			
+		  echo "========== Start old container =========="
+		  try{
+			sh "docker ps | grep latest"
+		  }catch(err){
+			sh "echo TAG=latest > ${workspace}/.env"
+			sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
+		  }
         }
       }
-      emailext body: "Server version - roschat-server:${VERSION} \n Result build - ${STATUS}", subject: 'Build Roschat server', to: 'bezpalko', from: 'jenkins@ros.chat'
+      emailext body: "Server version - roschat-server:${VERSION} \n Result build - currentBuild.result", subject: 'Build Roschat server', to: 'bezpalko', from: 'jenkins@ros.chat'
     }
     success{
       script{
