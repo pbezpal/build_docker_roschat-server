@@ -1,82 +1,101 @@
 #!groovy
 
-def resultBuild = true
-def VERSION
-def VERSION_OLD
-STATUS="Успешно"
+Boolean RESULTED_BUILD
+Boolean AFTER_BUILD
+String VERSION
+String VERSION_OLD
+String STATUS="SUCCESS"
 properties([disableConcurrentBuilds()])
+
+def is_result_shell_build(command,workspace,vesrion){
+    RESULTED_BUILD = sh(
+        script: command,
+        returnStatus: true) == 0
+    if(!RESULTED_BUILD){
+        currentBuild.result = 'ABORTED'
+		def exists_docker=sh(
+			script: "docker ps -a | grep ${version}",
+			returnStdout: true) == 0
+        if(exists_docker){
+			sh "docker-compose down && docker rmi roschat-server:${version}"
+        }
+
+        echo "========== Start old container =========="
+		exists_latest = sh(
+			script: "docker ps | grep latest",
+			returnStdout: true) == 0
+		if(!exists_latest){
+			sh "echo TAG=latest > ${workspace}/.env"
+			sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
+		}
+		error()
+		return
+    }
+}
+
+def is_result_shell_after_build(command,text){
+	AFTER_BUILD = sh(
+        script: command,
+        returnStatus: true) == 0
+	if(!AFTER_BUILD){
+		echo text
+		error()
+	}
+}
 
 pipeline{
   agent{
     label 'docker_centos'
   }
   stages{
-    stage("Очистка сборочной директории"){
+    stage("Cleaning the assembly directory"){
       steps{
         deleteDir();
       }
     }
-    stage("Клонирование GIT"){
+    stage("Clonning from a git repository"){
       steps{
         echo "========== Cloning GIT =========="
         script{
           try{
             git 'ssh://bezpalko_p@10.10.199.35/opt/git/firelink/roschat-server_docker'
           }catch(err){
-            currentBuild.result = "FAILURE"
+            currentBuild.result = "ABORTED"
             error("Невозможно выполниь клонированние из репозитория git")
           }
         }
       }
     }
-	stage("Остановка старого контейнера"){
+    stage("Stopping old container"){
       steps{
         script{
-          try{
-            echo "========== Stop and remove old docker container =========="
-            sh "docker-compose stop && docker-compose rm -f"
-          }catch(err){
-            currentBuild.result = "FAILURE"
-            error("Не удалось остановить старый контейнер")
-          }
+          echo "========== Stop and remove old docker container =========="
+          is_result_shell_build("docker-compose stop && docker-compose rm -f",WORKSPACE,VERSION)
         }
       }
     }
-    stage("Сборка образа и запуск контейнера"){
+    stage("Build docker image and run docker container"){
       steps{
         script{
-          VERSION=readFile('/tmp/build').trim()
-		  VERSION_OLD=readFile('/tmp/build.old').trim()
-          VERSION="${VERSION}_${BUILD_NUMBER}"
-          try{
-            echo "========== TAG for new docker =========="
-            sh "echo TAG=${VERSION} > ${WORKSPACE}/.env"
-            echo "========== Copy license =========="
-            sh "test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}"
-            echo "========== Copy rpms =========="
-            sh "test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}"
-            echo "========== Build docker image =========="
-            sh "docker-compose up -d"
-          }catch(err){
-            currentBuild.result = "FAILURE"
-            error("Ошибка сборки/запуска образа сервера")
-          }
+			VERSION=readFile('/tmp/build').trim()
+			VERSION_OLD=readFile('/tmp/build.old').trim()
+			VERSION="${VERSION}_${BUILD_NUMBER}"
+			echo "========== TAG for new docker =========="
+			is_result_shell_build("echo TAG=${VERSION} > ${WORKSPACE}/.env",WORKSPACE,VERSION)
+			echo "========== Copy license =========="
+			is_result_shell_build("test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}",WORKSPACE,VERSION)
+			echo "========== Copy rpms =========="
+			is_result_shell_build("test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}",WORKSPACE,VERSION)
+			echo "========== Build docker image and run container =========="
+			is_result_shell_build("docker-compose up -d",WORKSPACE,VERSION)
         }
       }
     }
-	stage("Установка ПО на сервер"){
+    stage("Installing soft to the server"){
       steps{
         script{
-          try{
-            echo "========== Install soft on docker container =========="
-            sh "docker exec ${VERSION} yum -y install cryptopp turnserver sudo cyrus-sasl-plain nodejs mutt mc net-tools openssh-server openssh-clients"
-			sh "docker exec ${VERSION} test ! -d /opt/rmps && mkdir /opt/rpms"
-			sh "docker exec ${VERSION} mv /tmp/*.rpm /opt/rpms/"
-			sh "docker exec ${VERSION} yum -y install /opt/rpms/*.rpm"
-			sh "docker container exec ${VERSION} /opt/start_ansible_playbook.sh"
-          }catch(err){
-            resultBuild=false
-          }
+			echo "========== Install soft on docker container =========="
+			is_result_shell_build("docker container exec ${VERSION} /opt/start_ansible_playbook.sh",WORKSPACE,VERSION)
         }
       }
     }
