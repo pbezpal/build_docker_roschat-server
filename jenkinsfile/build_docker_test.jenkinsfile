@@ -11,7 +11,7 @@ def is_result_shell_build(command,workspace,vesrion){
     RESULTED_BUILD = sh(
         script: command,
         returnStatus: true) == 0
-	echo $RESULTED_BUILD
+	echo "$RESULTED_BUILD"
     if(!RESULTED_BUILD){
         currentBuild.result = 'ABORTED'
 		exists_docker = sh(
