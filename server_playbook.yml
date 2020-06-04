@@ -2,7 +2,7 @@
 - name: A demo to run ansible in docker container
   hosts: server
   tasks:
-     - name: Install soft before install server
+     - name: Installing software on the server
        shell: |
          yum -y install cryptopp turnserver sudo cyrus-sasl-plain nodejs mutt mc net-tools openssh-server openssh-clients
           
@@ -11,7 +11,7 @@
          test ! -d /opt/rmps && mkdir /opt/rpms
          mv /tmp/*.rpm /opt/rpms/
 
-     - name: Install rpm's server
+     - name: Installing rpm's on the server
        shell: |
          yum -y install /opt/rpms/*.rpm
          
@@ -30,7 +30,7 @@
        shell: |
          ln -s /usr/bin/python3.6 /usr/bin/python36
 
-     - name: Start postgres
+     - name: Starting postgres database, wait ...
        shell: |
          until sudo -u postgres psql -c "" &>/dev/null; do   echo "Waiting for PostgreSQL...";   sleep 1; done
 

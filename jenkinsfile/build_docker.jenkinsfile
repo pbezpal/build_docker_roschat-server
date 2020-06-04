@@ -44,6 +44,7 @@ pipeline{
           }catch(err){
             currentBuild.result = "ABORTED"
             error("Error copying from git repository")
+			return;
           }
 		  currentBuild.result = "SUCCESS"
         }
@@ -74,10 +75,10 @@ pipeline{
         }
       }
     }
-    stage("Installing soft to the server"){
+    stage("software installation on the server"){
       steps{
         script{
-			echo "========== Install soft on docker container =========="
+			echo "========== Software installing on docker container =========="
 			is_result_shell_build("docker container exec ${VERSION} /opt/start_ansible_playbook.sh","Error installing software on server")
         }
       }
@@ -128,14 +129,18 @@ pipeline{
 		  }
         }
       }
-      emailext body: "Server version - roschat-server:${VERSION} \n Result build - currentBuild.result", subject: 'Build Roschat server', to: 'bezpalko', from: 'jenkins@ros.chat'
+      emailext body: "Server version - roschat-server:${VERSION} \n Result build - ${currentBuild.result}", subject: 'Build Roschat server', to: 'bezpalko', from: 'jenkins@ros.chat'
     }
     success{
       script{
-	    sleep 60
-		build(job: "roschat-server-testing",
-		  parameters:
-		  [string(name: 'VER', value: "${VERSION}")])		
+		try{
+		  sleep 60
+		  build(job: "roschat-server-testing",
+			parameters:
+			[string(name: 'VER', value: "${VERSION}")])
+		}catch(err){
+		  error("roschat-server:${VERSION} testing - FAILED")
+		}
       }
     }
   }
