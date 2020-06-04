@@ -5,7 +5,6 @@ String VERSION_OLD
 properties([disableConcurrentBuilds()])
 
 def is_result_shell_build(command,text){
-    echo currentBuild.result
     if(currentBuild.result == 'SUCCESS'){
         try{
             sh command    
