@@ -11,11 +11,12 @@ def is_result_shell_build(command,workspace,vesrion){
     RESULTED_BUILD = sh(
         script: command,
         returnStatus: true) == 0
+	echo $RESULTED_BUILD
     if(!RESULTED_BUILD){
         currentBuild.result = 'ABORTED'
-		def exists_docker=sh(
+		exists_docker = sh(
 			script: "docker ps -a | grep ${version}",
-			returnStdout: true) == 0
+			returnStatus: true) == 0
         if(exists_docker){
 			sh "docker-compose down && docker rmi roschat-server:${version}"
         }
@@ -23,7 +24,7 @@ def is_result_shell_build(command,workspace,vesrion){
         echo "========== Start old container =========="
 		exists_latest = sh(
 			script: "docker ps | grep latest",
-			returnStdout: true) == 0
+			returnStatus: true) == 0
 		if(!exists_latest){
 			sh "echo TAG=latest > ${workspace}/.env"
 			sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
