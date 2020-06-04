@@ -75,7 +75,7 @@ pipeline{
         }
       }
     }
-    stage("software installation on the server"){
+    stage("Software installation on the server"){
       steps{
         script{
 			echo "========== Software installing on docker container =========="
@@ -108,10 +108,33 @@ pipeline{
         }
       }
     }
+	stage("Sending mail"){
+      steps{
+        script{
+			emailext body: "Server version - roschat-server:${VERSION} \n Result build - ${currentBuild.result}", subject: 'Build Roschat server', to: 'bezpalko', from: 'jenkins@ros.chat'
+        }
+      }
+    }
+	stage('Start testing'){
+	  steps{
+	    script{
+		  if(currentBuild.result == "SUCCESS"){
+			try{
+			  sleep 60
+			  build(job: "roschat-server-testing",
+				parameters:
+				[string(name: 'VER', value: "${VERSION}")])
+			}catch(err){
+			  error("roschat-server:${VERSION} testing - FAILED")
+			}
+		  }
+		}
+	  }
+	}
   }
   post{
     always{
-      script{
+      script{		
         if(currentBuild.result != "SUCCESS"){
 	      Boolean DOCKER = sh(
 			script: "docker ps -a | grep ${VERSION}",
@@ -128,20 +151,7 @@ pipeline{
 			sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
 		  }
         }
-      }
-      emailext body: "Server version - roschat-server:${VERSION} \n Result build - ${currentBuild.result}", subject: 'Build Roschat server', to: 'bezpalko', from: 'jenkins@ros.chat'
-    }
-    success{
-      script{
-		try{
-		  sleep 60
-		  build(job: "roschat-server-testing",
-			parameters:
-			[string(name: 'VER', value: "${VERSION}")])
-		}catch(err){
-		  error("roschat-server:${VERSION} testing - FAILED")
-		}
-      }
-    }
+      }      
+    }   
   }
 }
