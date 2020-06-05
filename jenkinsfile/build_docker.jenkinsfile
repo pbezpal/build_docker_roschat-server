@@ -9,7 +9,7 @@ def is_result_shell_build(command,text){
         try{
             sh command    
         }catch(err){
-            error(text)
+            echo text
             currentBuild.result = 'ABORTED'
         }
     }
@@ -20,7 +20,7 @@ def is_result_shell_after_build(command,text){
     	try{
     	  sh command  
     	}catch(err){
-    	    error(text)
+    	    echo text
     	}
 	}
 }
