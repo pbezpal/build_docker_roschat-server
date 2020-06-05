@@ -86,9 +86,9 @@ pipeline{
     stage("Commit docker image after build"){
       steps{
         script{
-		    /*is_result_shell_after_build("docker rmi roschat-server:latest","Can't to delete docker image of latest version")
-		    is_result_shell_after_build("docker rmi roschat-server:${VERSION_OLD}","Can't to delete remove docker of old version")*/
-		    is_result_shell_after_build("docker commit ${VERSION} roschat-server:${VERSION}_fix","Can't commit latest version docker image")			
+		    is_result_shell_after_build("docker rmi roschat-server:latest","Can't to delete docker image of latest version")
+		    is_result_shell_after_build("docker rmi roschat-server:${VERSION_OLD}","Can't to delete remove docker of old version")
+		    is_result_shell_after_build("docker commit ${VERSION} roschat-server","Can't commit latest version docker image")			
         }
       }
     }
@@ -99,12 +99,12 @@ pipeline{
 			is_result_shell_after_build("echo ${VERSION} > /tmp/build.old","Can't save mark old image tag`")
 			echo "========== Push build docker to docker hub =========="
 			is_result_shell_after_build("docker login -u admin -p Y@rd87846259 10.10.38.173:8123","Can't login docker registry")
-			/*is_result_shell_after_build("docker tag roschat-server:${VERSION} 10.10.38.173:8123/roschat-server:${VERSION}","Can't create tag docker image for docker registry")
+			is_result_shell_after_build("docker tag roschat-server:${VERSION} 10.10.38.173:8123/roschat-server:${VERSION}","Can't create tag docker image for docker registry")
 			is_result_shell_after_build("docker push 10.10.38.173:8123/roschat-server:${VERSION}","Can't push docker image to docker registry")
-			is_result_shell_after_build("docker rmi 10.10.38.173:8123/roschat-server:${VERSION}","Can't to delete tag for docker registry")*/
-			is_result_shell_after_build("docker tag roschat-server:${VERSION}_fix 10.10.38.173:8123/roschat-server:${VERSION}_fix","Can't latest tag docker image for docker registry")
-			is_result_shell_after_build("docker push 10.10.38.173:8123/roschat-server:${VERSION}_fix","Can't push latest docker image to docker registry")
-			is_result_shell_after_build("docker rmi 10.10.38.173:8123/roschat-server:${VERSION}_fix","Can't to delete tag latest for docker registry")
+			is_result_shell_after_build("docker rmi 10.10.38.173:8123/roschat-server:${VERSION}","Can't to delete tag for docker registry")
+			is_result_shell_after_build("docker tag roschat-server:latest 10.10.38.173:8123/roschat-server:latest","Can't latest tag docker image for docker registry")
+			is_result_shell_after_build("docker push 10.10.38.173:8123/roschat-server:latest","Can't push latest docker image to docker registry")
+			is_result_shell_after_build("docker rmi 10.10.38.173:8123/roschat-server:latest","Can't to delete tag latest for docker registry")
         }
       }
     }
