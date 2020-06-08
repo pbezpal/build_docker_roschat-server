@@ -79,7 +79,7 @@ pipeline{
       steps{
         script{
 			echo "========== Software installing on docker container =========="
-			is_result_shell_build("docker container exec ${VERSION} /opt/start_ansible_playbook.sh","Error installing software on server")
+			is_result_shell_build("docker-compose exec -T -u 0 roschat-server /opt/start_ansible_playbook.sh","Error installing software on server")
         }
       }
     }
