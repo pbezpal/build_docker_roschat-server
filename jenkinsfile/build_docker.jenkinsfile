@@ -156,7 +156,7 @@ pipeline{
 			sh "docker ps | grep latest"
 		  }catch(err){
 			sh "echo TAG=latest > ${workspace}/.env"
-			sh "docker-compose up -d && docker exec latest /opt/start_services.sh"
+			sh "docker-compose up -d && docker-compose exec -T -u 0 roschat-server /opt/start_services.sh"
 		  }
         }
       }      
