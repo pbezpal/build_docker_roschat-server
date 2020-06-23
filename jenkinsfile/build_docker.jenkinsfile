@@ -121,9 +121,11 @@ pipeline{
 		  if(currentBuild.result == "SUCCESS"){
 			try{
 			  sleep 60
-			  build(job: "roschat-server-testing",
-				parameters:
-				[string(name: 'VER', value: "${VERSION}")])
+			  if("${VERSION}".contains('roschat-db')){
+                  build(job: "roschat-db-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
+              }else{
+                  build(job: "roschat-server-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
+              }
 			}catch(err){
 			  echo "roschat-server:${VERSION} testing - FAILED"
 			}
