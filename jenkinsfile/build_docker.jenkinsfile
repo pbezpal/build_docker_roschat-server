@@ -121,7 +121,8 @@ pipeline{
 		  if(currentBuild.result == "SUCCESS"){
 			try{
 			  sleep 60
-			  if("${VERSION}".contains('roschat-db')){
+              if("${VERSION}".contains('roschat-sip')){}
+			  else if("${VERSION}".contains('roschat-db')){
                   build(job: "roschat-db-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
               }else if("${VERSION}".contains('roschat-snmp')){
                   build(job: "roschat-snmp-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
