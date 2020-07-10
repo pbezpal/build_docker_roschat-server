@@ -9,7 +9,7 @@ def is_critical_result_shell_build(command,text){
         try{
             sh command    
         }catch(err){
-            currentBuild.result = 'ABORTED'
+            currentBuild.result = 'FAILURE'
 			error(text)            
 			return;
         }
@@ -22,7 +22,7 @@ def is_result_shell_build(command,text){
             sh command    
         }catch(err){
             echo text
-            currentBuild.result = 'ABORTED'
+            currentBuild.result = 'FAILURE'
         }
     }
 }
@@ -54,7 +54,7 @@ pipeline{
           try{
             git 'ssh://bezpalko_p@10.10.199.35/opt/git/firelink/roschat-server_docker'
           }catch(err){
-            currentBuild.result = "ABORTED"
+            currentBuild.result = "FAILURE"
             error("Error copying from git repository")
 			return;
           }
