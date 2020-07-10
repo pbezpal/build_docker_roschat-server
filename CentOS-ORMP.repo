@@ -10,9 +10,9 @@
 #
 #
 
-[ORMP]
-name=CentOS-$releasever - ORMP
+[LOCALREPO]
+name="Roschat local repo"
 #mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=os&infra=$infra
-baseurl=ftp://10.10.199.31/Repo/centos/7.3.1611
+baseurl=http://10.10.199.217:8080/repository/roschat.local.repo
 gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
