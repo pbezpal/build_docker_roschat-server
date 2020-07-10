@@ -4,6 +4,18 @@ String VERSION
 String VERSION_OLD
 properties([disableConcurrentBuilds()])
 
+def is_critical_result_shell_build(command,text){
+    if(currentBuild.result == 'SUCCESS'){
+        try{
+            sh command    
+        }catch(err){
+            currentBuild.result = 'ABORTED'
+			error(text)            
+			return;
+        }
+    }
+}
+
 def is_result_shell_build(command,text){
     if(currentBuild.result == 'SUCCESS'){
         try{
@@ -54,7 +66,7 @@ pipeline{
       steps{
         script{
           echo "========== Stop and remove old docker container =========="
-          is_result_shell_build("docker-compose stop && docker-compose rm -f","Can't stop old docker container")
+          is_critical_result_shell_build("docker-compose stop && docker-compose rm -f","Can't stop old docker container")
         }
       }
     }
@@ -65,13 +77,13 @@ pipeline{
 			VERSION_OLD=readFile('/tmp/build.old').trim()
 			VERSION="${VERSION}_${BUILD_NUMBER}"
 			echo "========== TAG for new docker =========="
-			is_result_shell_build("echo TAG=${VERSION} > ${WORKSPACE}/.env","Can't write a tag to a ${WORKSPACE}/.env")
+			is_critical_result_shell_build("echo TAG=${VERSION} > ${WORKSPACE}/.env","Can't write a tag to a ${WORKSPACE}/.env")
 			echo "========== Copy license =========="
-			is_result_shell_build("test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}","Can't copy license to a ${WORKSPACE}")
+			is_critical_result_shell_build("test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}","Can't copy license to a ${WORKSPACE}")
 			echo "========== Copy rpms =========="
-			is_result_shell_build("test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}","Can't copy rpms to a ${WORKSPACE}")
+			is_critical_result_shell_build("test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}","Can't copy rpms to a ${WORKSPACE}")
 			echo "========== Build docker image and run container =========="
-			is_result_shell_build("docker-compose up -d","The result of the assembly and launch of the container - failed")
+			is_critical_result_shell_build("docker-compose up -d","The result of the assembly and launch of the container - failed")
         }
       }
     }
@@ -79,7 +91,7 @@ pipeline{
       steps{
         script{
 			echo "========== Software installing on docker container =========="
-			is_result_shell_build("docker-compose exec -T -u 0 roschat-server /opt/start_ansible_playbook.sh","Error installing software on server")
+			is_critical_result_shell_build("docker-compose exec -T -u 0 roschat-server /opt/start_ansible_playbook.sh","Error installing software on server")
         }
       }
     }
