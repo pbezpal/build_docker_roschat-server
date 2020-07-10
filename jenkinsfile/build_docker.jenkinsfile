@@ -120,13 +120,6 @@ pipeline{
         }
       }
     }
-	stage("Sending mail"){
-      steps{
-        script{
-			emailext body: "Server version - roschat-server:${VERSION} \n Result build - ${currentBuild.result}", subject: 'Build Roschat server', to: 'bezpalko', from: 'jenkins@ros.chat'
-        }
-      }
-    }
 	stage('Start testing'){
 	  steps{
 	    script{
@@ -155,7 +148,8 @@ pipeline{
   }
   post{
     always{
-      script{		
+      script{
+		emailext body: "Server version - roschat-server:${VERSION} \n Result build - ${currentBuild.result}", subject: 'Build Roschat server', to: 'bezpalko', from: 'jenkins@ros.chat'
         if(currentBuild.result != "SUCCESS"){
 	      Boolean DOCKER = sh(
 			script: "docker ps -a | grep ${VERSION}",
