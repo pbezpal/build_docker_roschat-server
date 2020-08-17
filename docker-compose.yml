@@ -4,6 +4,10 @@ services:
     build: ./
     image: roschat-server:${TAG}
     container_name: ${TAG}
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_PTRACE
     network_mode: "bridge"
     volumes:
       - type: bind
