@@ -18,20 +18,30 @@
            - strace
          state: present
 
-     - name: Move rpms
-       shell: |
-         test ! -d /opt/rmps && mkdir /opt/rpms
-         mv /tmp/*.rpm /opt/rpms/
+     - name: Create directory for rmps
+       file:
+         path: /opt/rpms
+         state: directory
+         mode: '0755'
 
-     - name: Installing rpm's on the server
-       yum:
-         name: /opt/rpms/*.rpm
-         state: present
+     - name: Move rpms
+       copy:
+         src=/tmp/
+         dest=/opt/rpms/
+
+     - name: Installing rpms on the server
+       shell: yum localinstall *.rpm -y
+       args:
+         chdir: /opt/rpms
+
+     - name: Remove default license
+       file: path=/opt/roschat-server/certificates/https state=absent
+       file: path=/opt/roschat-server/certificates/https state=directory
 
      - name: Copy license
-       shell: |
-         rm -f /opt/roschat-server/certificates/https/*
-         cp -f /opt/license/* /opt/roschat-server/certificates/https/
+       copy:
+         src=/opt/license/
+         dest=/opt/roschat-server/certificates/https/
 
      - name: Settings certificates
        shell: |
@@ -40,8 +50,10 @@
          sed -i 's/"2fa": true/"2fa": false/' /opt/roschat-server/server/config.json
 
      - name: Symlink python36
-       shell: |
-         ln -s /usr/bin/python3.6 /usr/bin/python36
+       file:
+         src: /usr/bin/python3.6
+         dest: /usr/bin/python36
+         state: link
 
      - name: Make sure a service wlan is running
        systemd:
