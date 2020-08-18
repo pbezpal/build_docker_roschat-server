@@ -3,18 +3,31 @@
   hosts: server
   tasks:
      - name: Installing software on the server
-       shell: |
-         yum -y install cryptopp turnserver sudo cyrus-sasl-plain nodejs mutt mc net-tools openssh-server openssh-clients strace
-          
+       yum:
+         name:
+           - cryptopp
+           - turnserver
+           - sudo
+           - cyrus-sasl-plain
+           - nodejs
+           - mutt
+           - mc
+           - net-tools
+           - openssh-server
+           - openssh-clients
+           - strace
+         state: present
+
      - name: Move rpms
        shell: |
          test ! -d /opt/rmps && mkdir /opt/rpms
          mv /tmp/*.rpm /opt/rpms/
 
      - name: Installing rpm's on the server
-       shell: |
-         yum -y install /opt/rpms/*.rpm
-         
+       yum:
+         name: /opt/rpms/*.rpm
+         state: present
+
      - name: Copy license
        shell: |
          rm -f /opt/roschat-server/certificates/https/*
