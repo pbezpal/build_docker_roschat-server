@@ -18,16 +18,16 @@
            - strace
          state: present
 
-     - name: Create directory for rmps
-       file:
-         path: /opt/rpms
-         state: directory
-         mode: '0755'
+     #- name: Create directory for rmps
+      # file:
+      #   path: /opt/rpms
+      #   state: directory
+      #   mode: '0755'
 
-     - name: Move rpms
-       copy:
-         src=/tmp/
-         dest=/opt/rpms/
+     #- name: Move rpms
+      # copy:
+      #   src=/tmp/
+      #   dest=/opt/rpms/
 
      - name: Installing rpms on the server
        shell: yum localinstall *.rpm -y

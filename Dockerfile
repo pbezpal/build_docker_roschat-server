@@ -20,7 +20,7 @@ COPY ./license/ /opt/license/
 COPY ./start_ansible_playbook.sh /opt/
 COPY ./start_services.sh /opt/
 COPY ./server_playbook.yml /opt/
-COPY ./rpms/ /tmp/
+COPY ./rpms/ /opt/rpms/
 
 RUN yum -y install epel-release
 RUN yum -y install ansible && yum clean all
