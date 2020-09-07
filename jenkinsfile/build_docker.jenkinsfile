@@ -7,7 +7,7 @@ properties([disableConcurrentBuilds()])
 def is_critical_result_shell_build(command,text){
     if(currentBuild.result == 'SUCCESS'){
         try{
-            sh command    
+            sh command
         }catch(err){
             currentBuild.result = 'FAILURE'
             emailext body: "Server version - roschat-server:${VERSION} \n Result build - ${currentBuild.result}", subject: 'Build Roschat server', to: 'bezpalko', from: 'jenkins@ros.chat'
@@ -20,7 +20,7 @@ def is_critical_result_shell_build(command,text){
 def is_result_shell_build(command,text){
     if(currentBuild.result == 'SUCCESS'){
         try{
-            sh command    
+            sh command
         }catch(err){
             echo text
             currentBuild.result = 'FAILURE'
@@ -31,7 +31,7 @@ def is_result_shell_build(command,text){
 def is_result_shell_after_build(command,text){
 	if(currentBuild.result == 'SUCCESS'){
     	try{
-    	  sh command  
+    	  sh command
     	}catch(err){
     	    echo text
     	}
@@ -74,15 +74,15 @@ pipeline{
     stage("Build docker image and run docker container"){
       steps{
         script{
-			VERSION=readFile('/tmp/build').trim()
-			VERSION_OLD=readFile('/tmp/build.old').trim()
+			VERSION=readFile('/opt/build').trim()
+			VERSION_OLD=readFile('/opt/build.old').trim()
 			VERSION="${VERSION}_${BUILD_NUMBER}"
 			echo "========== TAG for new docker =========="
 			is_critical_result_shell_build("echo TAG=${VERSION} > ${WORKSPACE}/.env","Can't write a tag to a ${WORKSPACE}/.env")
 			echo "========== Copy license =========="
 			is_critical_result_shell_build("test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}","Can't copy license to a ${WORKSPACE}")
 			echo "========== Copy rpms =========="
-			is_critical_result_shell_build("test ! -d ${WORKSPACE}/rpms && cp -r /tmp/rpms ${WORKSPACE}","Can't copy rpms to a ${WORKSPACE}")
+			is_critical_result_shell_build("test ! -d ${WORKSPACE}/rpms && cp -r /opt/rpms ${WORKSPACE}","Can't copy rpms to a ${WORKSPACE}")
 			echo "========== Build docker image and run container =========="
 			is_critical_result_shell_build("docker-compose up -d","The result of the assembly and launch of the container - failed")
         }
@@ -101,7 +101,7 @@ pipeline{
         script{
 		    is_result_shell_after_build("docker rmi roschat-server:latest","Can't to delete docker image of latest version")
 		    is_result_shell_after_build("docker rmi roschat-server:${VERSION_OLD}","Can't to delete remove docker of old version")
-		    is_result_shell_after_build("docker commit ${VERSION} roschat-server","Can't commit latest version docker image")			
+		    is_result_shell_after_build("docker commit ${VERSION} roschat-server","Can't commit latest version docker image")
         }
       }
     }
@@ -109,7 +109,7 @@ pipeline{
       steps{
         script{
 			echo "========== Save old tag =========="
-			is_result_shell_after_build("echo ${VERSION} > /tmp/build.old","Can't save mark old image tag`")
+			is_result_shell_after_build("echo ${VERSION} > /opt/build.old","Can't save mark old image tag`")
 			echo "========== Push build docker to docker hub =========="
 			is_result_shell_after_build("docker login -u admin -p Y@rd87846259 10.10.199.217:8123","Can't login docker registry")
 			is_result_shell_after_build("docker tag roschat-server:${VERSION} 10.10.199.217:8123/roschat-server:${VERSION}","Can't create tag docker image for docker registry")
@@ -164,7 +164,7 @@ pipeline{
 		  if(DOCKER){
 			sh "docker-compose down && docker rmi roschat-server:${VERSION}"
 		  }
-			
+
 		  echo "========== Start old container =========="
 		  try{
 			sh "docker ps | grep latest"
@@ -173,7 +173,7 @@ pipeline{
 			sh "docker-compose up -d && docker-compose exec -T -u 0 roschat-server /opt/start_services.sh"
 		  }
         }
-      }      
-    }   
+      }
+    }
   }
 }
