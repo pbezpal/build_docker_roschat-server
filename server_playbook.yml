@@ -18,11 +18,8 @@
            - strace
          state: present
 
-     #- name: Create directory for rmps
-      # file:
-      #   path: /opt/rpms
-      #   state: directory
-      #   mode: '0755'
+     - name: Install packages for dx
+       shell: yum install -y ftp://10.10.199.31/Repo/centos/7.3.1611/roschat-dx-integration-0.0.2-21421.x86_64.rpm ftp://10.10.199.31/Repo/centos/7.3.1611/roschat-dx-sip-0.0.2-21421.x86_64.rpm
 
      #- name: Move rpms
       # copy:
