@@ -16,15 +16,9 @@
            - openssh-server
            - openssh-clients
            - strace
+           - roschat-dx-integration
+           - roschat-dx-sip
          state: present
-
-     - name: Install packages for dx
-       shell: yum install -y ftp://10.10.199.31/Repo/centos/7.3.1611/roschat-dx-integration-0.0.2-21421.x86_64.rpm ftp://10.10.199.31/Repo/centos/7.3.1611/roschat-dx-sip-0.0.2-21421.x86_64.rpm
-
-     #- name: Move rpms
-      # copy:
-      #   src=/tmp/
-      #   dest=/opt/rpms/
 
      - name: Installing rpms on the server
        shell: yum localinstall *.rpm -y
