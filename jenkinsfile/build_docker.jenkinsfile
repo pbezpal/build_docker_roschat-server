@@ -136,23 +136,24 @@ pipeline{
 	  steps{
 	    script{
 		  if(currentBuild.result == "SUCCESS"){
-			try{
-			  sleep 60
-              if("${VERSION}".contains('roschat-sip')){}
-			  else if("${VERSION}".contains('roschat-db')){
-                  build(job: "roschat-db-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
-              }else if("${VERSION}".contains('roschat-snmp')){
-                  build(job: "roschat-snmp-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
-              }else if("${VERSION}".contains('roschat-server')){
-                  build(job: "roschat-server-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
-              }else if("${VERSION}".contains('roschat-web-client')){
-                  build(job: "roschat-web-client-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
-              }else{
-                  build(job: "roschat-ms-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
-              }
-			}catch(err){
-			  echo "roschat-server:${VERSION} testing - FAILED"
-			}
+        build job: 'roschat-server_update', wait: false
+  			try{
+  			  sleep 60
+                if("${VERSION}".contains('roschat-sip')){}
+  			  else if("${VERSION}".contains('roschat-db')){
+                    build(job: "roschat-db-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
+                }else if("${VERSION}".contains('roschat-snmp')){
+                    build(job: "roschat-snmp-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
+                }else if("${VERSION}".contains('roschat-server')){
+                    build(job: "roschat-server-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
+                }else if("${VERSION}".contains('roschat-web-client')){
+                    build(job: "roschat-web-client-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
+                }else{
+                    build(job: "roschat-ms-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
+                }
+  			}catch(err){
+  			  echo "roschat-server:${VERSION} testing - FAILED"
+  			}
 		  }
 		}
 	  }
