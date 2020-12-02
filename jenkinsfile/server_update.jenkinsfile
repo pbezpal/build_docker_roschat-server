@@ -86,9 +86,11 @@ pipeline{
       is_critical_result_shell_build("echo IMAGE=${IMAGE_NAME} > ${WORKSPACE}/.env","Can't write the image name to a ${WORKSPACE}/.env")
       echo "========== TAG for new docker =========="
 			is_critical_result_shell_build("echo TAG=${VERSION} >> ${WORKSPACE}/.env","Can't write the tag to a ${WORKSPACE}/.env")
-			echo "========== Build docker image and run container =========="
+      echo "========== Pull latest image =========="
+      is_critical_result_shell_build("docker pull ${IMAGE_NAME}","Can't pull latest image of server")
+      echo "========== Start conteiner =========="
 			is_critical_result_shell_build("docker-compose up -d --no-build","Can't launch of the container")
-      echo "========== Build docker image and run container =========="
+      echo "========== Start services =========="
 			is_critical_result_shell_build("docker-compose exec -T -u 0 roschat-server /opt/start_services.sh","Can't running services")
         }
       }
