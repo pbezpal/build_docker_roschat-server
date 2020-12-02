@@ -75,7 +75,7 @@ pipeline{
       steps{
         script{
           echo "========== Update image roschat-server:latest =========="
-          is_critical_result_shell_build("if docker images| grep latest &>/de/null; then docker rmi ${IMAGE_NAME}; fi","Can't remove old image")
+          is_critical_result_shell_build("if [[ $(docker images -q ${IMAGE_NAME}) != \"\" ]]; then docker rmi ${IMAGE_NAME}; fi","Can't remove old image")
         }
       }
     }
