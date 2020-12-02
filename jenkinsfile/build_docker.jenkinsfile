@@ -1,5 +1,6 @@
 #!groovy
 
+String IMAGE_NAME
 String VERSION
 String VERSION_OLD
 properties([disableConcurrentBuilds()])
@@ -77,8 +78,11 @@ pipeline{
 			VERSION=readFile('/opt/build').trim()
 			VERSION_OLD=readFile('/opt/build.old').trim()
 			VERSION="${VERSION}_${BUILD_NUMBER}"
-			echo "========== TAG for new docker =========="
-			is_critical_result_shell_build("echo TAG=${VERSION} > ${WORKSPACE}/.env","Can't write a tag to a ${WORKSPACE}/.env")
+      IAMGE_NAME="roschat-server:${VERSION}"
+      echo "========== Image name for new docker =========="
+      is_critical_result_shell_build("echo IMAGE=${IMAGE_NAME} > ${WORKSPACE}/.env","Can't write the image name to a ${WORKSPACE}/.env")
+      echo "========== TAG for new docker =========="
+			is_critical_result_shell_build("echo TAG=${VERSION} >> ${WORKSPACE}/.env","Can't write a tag to a ${WORKSPACE}/.env")
 			echo "========== Copy license =========="
 			is_critical_result_shell_build("test ! -d ${WORKSPACE}/license && cp -r /opt/license ${WORKSPACE}","Can't copy license to a ${WORKSPACE}")
 			echo "========== Copy rpms =========="

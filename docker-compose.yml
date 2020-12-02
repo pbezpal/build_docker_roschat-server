@@ -2,7 +2,7 @@ version: '3.2'
 services:
   roschat-server:
     build: ./
-    image: roschat-server:${TAG}
+    image: ${IMAGE}
     container_name: ${TAG}
     security_opt:
       - seccomp:unconfined
