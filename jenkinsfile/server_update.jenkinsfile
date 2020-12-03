@@ -1,7 +1,9 @@
 #!groovy
 
-String VERSION="latest"
-String IMAGE_NAME="10.10.199.217:8123/roschat-server:latest"
+String NAME="${params.NAME}"
+String VERSION="${params.VERSION}"
+String NUMBER="${params.NUMBER}"
+String RPM="${NAME}-${VERSION}-${NUMBER}"
 properties([disableConcurrentBuilds()])
 
 def is_critical_result_shell_build(command,text){
@@ -63,37 +65,15 @@ pipeline{
         }
       }
     }
-    stage("Stopping old container"){
+    stage("Update rpm"){
       steps{
         script{
-          echo "========== Stop and remove old docker container =========="
-          is_critical_result_shell_build("docker-compose stop && docker-compose rm -f","Can't stop old docker container")
-        }
-      }
-    }
-    stage("Update image"){
-      steps{
-        script{
-          echo "========== Update image roschat-server:latest =========="
-          is_critical_result_shell_build("if [[ `docker images -q ${IMAGE_NAME}` != \"\" ]]; then docker rmi ${IMAGE_NAME}; fi","Can't remove old image")
-        }
-      }
-    }
-    stage("Run docker container and start services"){
-      steps{
-        script{
-      echo "========== Image name for new docker =========="
-      is_critical_result_shell_build("echo IMAGE=${IMAGE_NAME} > ${WORKSPACE}/.env","Can't write the image name to a ${WORKSPACE}/.env")
-      echo "========== TAG for new docker =========="
-			is_critical_result_shell_build("echo TAG=${VERSION} >> ${WORKSPACE}/.env","Can't write the tag to a ${WORKSPACE}/.env")
-      echo "========== Login docker registry =========="
-      is_critical_result_shell_build("docker login -u admin -p Y@rd87846259 10.10.199.217:8123","Can't login docker registry")
-      echo "========== Pull latest image =========="
-      is_critical_result_shell_build("docker pull ${IMAGE_NAME}","Can't pull latest image of server")
-      echo "========== Start conteiner =========="
-			is_critical_result_shell_build("docker-compose up -d --no-build","Can't launch of the container")
-      echo "========== Start services =========="
-			is_critical_result_shell_build("docker-compose exec -T -u 0 roschat-server /opt/start_services.sh","Can't running services")
+          echo "========== Update rpm package ${RPM} =========="
+          is_critical_result_shell_build("yum install -y ${RPM}","Can't update rpm")
+          if("${NAME}".equals('roschat-server')){
+            RPM="roschat-node-modules-${VERSION}-${NUMBER}"
+            is_critical_result_shell_build("yum install -y ${RPM}","Can't update rpm")
+          }
         }
       }
     }
