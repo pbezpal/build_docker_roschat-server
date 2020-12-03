@@ -1,9 +1,5 @@
 #!groovy
 
-String NAME="${params.NAME}"
-String VERSION="${params.VERSION}"
-String NUMBER="${params.NUMBER}"
-String RPM="${NAME}-${VERSION}-${NUMBER}"
 properties([disableConcurrentBuilds()])
 
 def is_critical_result_shell_build(command,text){
@@ -69,11 +65,7 @@ pipeline{
       steps{
         script{
           echo "========== Update rpm package ${RPM} =========="
-          is_critical_result_shell_build("yum install -y ${RPM}","Can't update rpm")
-          if("${NAME}".equals('roschat-server')){
-            RPM="roschat-node-modules-${VERSION}-${NUMBER}"
-            is_critical_result_shell_build("yum install -y ${RPM}","Can't update rpm")
-          }
+          is_critical_result_shell_build("yum localinstall -y /tmp/rpm_temp/*.rpm","Can't update rpm")
         }
       }
     }
