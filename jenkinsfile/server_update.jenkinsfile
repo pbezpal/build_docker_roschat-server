@@ -77,51 +77,14 @@ pipeline{
             }
         }
     }
-	/*stage('Start testing'){
-	  steps{
-	    script{
-		  if(currentBuild.result == "SUCCESS"){
-			try{
-              if("${VERSION}".contains('roschat-sip')){}
-			  else if("${VERSION}".contains('roschat-db')){
-                  build(job: "roschat-db-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
-              }else if("${VERSION}".contains('roschat-snmp')){
-                  build(job: "roschat-snmp-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
-              }else if("${VERSION}".contains('roschat-server')){
-                  build(job: "roschat-server-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
-              }else if("${VERSION}".contains('roschat-web-client')){
-                  build(job: "roschat-web-client-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
-              }else{
-                  build(job: "roschat-ms-testing", parameters: [string(name: 'VER', value: "${VERSION}")])
-              }
-			}catch(err){
-			  echo "roschat-server:${VERSION} testing - FAILED"
-			}
-		  }
-		}
-	  }
-	}*/
-  }
-  /*post{
-    always{
-      script{
-        if(currentBuild.result != "SUCCESS"){
-	      Boolean DOCKER = sh(
-			script: "docker ps -a | grep ${VERSION}",
-			returnStatus: true) == 0
-		  if(DOCKER){
-			sh "docker-compose down && docker rmi roschat-server:${VERSION}"
-		  }
-
-		  echo "========== Start old container =========="
-		  try{
-			sh "docker ps | grep latest"
-		  }catch(err){
-			sh "echo TAG=latest > ${workspace}/.env"
-			sh "docker-compose up -d && docker-compose exec -T -u 0 roschat-server /opt/start_services.sh"
-		  }
+    stage("Run job build server"){
+          steps{
+            script{
+              if(currentBuild.result == 'SUCCESS'){
+                  build job: 'roschat-server_docker', wait: false
+            }
         }
       }
     }
-  }*/
+  }
 }
