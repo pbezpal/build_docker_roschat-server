@@ -66,6 +66,7 @@ pipeline{
         script{
           echo "========== Update rpm package =========="
           is_critical_result_shell_build("yum localinstall -y /tmp/rpm_temp/*.rpm","Can't update rpm")
+          is_critical_result_shell_build("systemctl restart wlan","Can't restart wlan")
         }
       }
     }
